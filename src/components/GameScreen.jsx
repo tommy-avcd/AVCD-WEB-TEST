@@ -46,47 +46,47 @@ export default function GameScreen({ onUpdate, autoStart }) {
 
     let isTouchDevice = false
 
-    const doDirection = () => {
-      if (gameRef.current) gameRef.current.changeDirection()
+    const doLeft = () => {
+      if (gameRef.current) gameRef.current.stepLeft()
     }
 
-    const doStep = () => {
-      if (gameRef.current) gameRef.current.stepUp()
+    const doRight = () => {
+      if (gameRef.current) gameRef.current.stepRight()
     }
 
     // Touch handlers
-    const onDirTouch = (e) => {
+    const onLeftTouch = (e) => {
       e.preventDefault()
       e.stopPropagation()
       isTouchDevice = true
-      doDirection()
+      doLeft()
     }
 
-    const onStepTouch = (e) => {
+    const onRightTouch = (e) => {
       e.preventDefault()
       e.stopPropagation()
       isTouchDevice = true
-      doStep()
+      doRight()
     }
 
     // Mouse handlers (only for desktop - skip if touch device)
-    const onDirMouse = (e) => {
+    const onLeftMouse = (e) => {
       if (isTouchDevice) return
       e.preventDefault()
-      doDirection()
+      doLeft()
     }
 
-    const onStepMouse = (e) => {
+    const onRightMouse = (e) => {
       if (isTouchDevice) return
       e.preventDefault()
-      doStep()
+      doRight()
     }
 
     // Use { passive: false } to allow preventDefault on touch events
-    dirBtn.addEventListener('touchstart', onDirTouch, { passive: false })
-    stepBtn.addEventListener('touchstart', onStepTouch, { passive: false })
-    dirBtn.addEventListener('mousedown', onDirMouse)
-    stepBtn.addEventListener('mousedown', onStepMouse)
+    dirBtn.addEventListener('touchstart', onLeftTouch, { passive: false })
+    stepBtn.addEventListener('touchstart', onRightTouch, { passive: false })
+    dirBtn.addEventListener('mousedown', onLeftMouse)
+    stepBtn.addEventListener('mousedown', onRightMouse)
 
     // Prevent any default touch behavior on the control area
     const controlArea = dirBtn.parentElement
@@ -95,10 +95,10 @@ export default function GameScreen({ onUpdate, autoStart }) {
     controlArea.addEventListener('touchend', preventDefault, { passive: false })
 
     return () => {
-      dirBtn.removeEventListener('touchstart', onDirTouch)
-      stepBtn.removeEventListener('touchstart', onStepTouch)
-      dirBtn.removeEventListener('mousedown', onDirMouse)
-      stepBtn.removeEventListener('mousedown', onStepMouse)
+      dirBtn.removeEventListener('touchstart', onLeftTouch)
+      stepBtn.removeEventListener('touchstart', onRightTouch)
+      dirBtn.removeEventListener('mousedown', onLeftMouse)
+      stepBtn.removeEventListener('mousedown', onRightMouse)
       controlArea.removeEventListener('touchmove', preventDefault)
       controlArea.removeEventListener('touchend', preventDefault)
     }
@@ -107,13 +107,15 @@ export default function GameScreen({ onUpdate, autoStart }) {
   // Keyboard support
   useEffect(() => {
     const handleKey = (e) => {
+      // Left arrow / H = step left (go up-left)
       if (e.key === 'ArrowLeft' || e.key === 'h' || e.key === 'H') {
         e.preventDefault()
-        if (gameRef.current) gameRef.current.changeDirection()
+        if (gameRef.current) gameRef.current.stepLeft()
       }
-      if (e.key === 'ArrowRight' || e.key === 'k' || e.key === 'K' || e.key === 'ArrowUp' || e.key === ' ') {
+      // Right arrow / K / L = step right (go up-right)
+      if (e.key === 'ArrowRight' || e.key === 'k' || e.key === 'K' || e.key === 'l' || e.key === 'L') {
         e.preventDefault()
-        if (gameRef.current) gameRef.current.stepUp()
+        if (gameRef.current) gameRef.current.stepRight()
       }
     }
     window.addEventListener('keydown', handleKey)
@@ -133,16 +135,16 @@ export default function GameScreen({ onUpdate, autoStart }) {
       {/* Control Buttons - native event binding via refs */}
       <div className="controls">
         <div ref={dirBtnRef} className="ctrl-btn ctrl-direction" role="button">
-          <div className="ctrl-icon direction-icon">
+          <div className="ctrl-icon">
             <svg viewBox="0 0 48 48" width="48" height="48">
-              <path d="M10 24 L22 12 L22 20 L26 20 L26 12 L38 24 L26 36 L26 28 L22 28 L22 36 Z" fill="currentColor"/>
+              <path d="M30 8 L10 28 L20 28 L18 40 L38 20 L28 20 Z" fill="currentColor"/>
             </svg>
           </div>
         </div>
         <div ref={stepBtnRef} className="ctrl-btn ctrl-step" role="button">
-          <div className="ctrl-icon step-icon">
+          <div className="ctrl-icon">
             <svg viewBox="0 0 48 48" width="48" height="48">
-              <path d="M24 8 L40 30 L8 30 Z" fill="currentColor"/>
+              <path d="M18 8 L38 28 L28 28 L30 40 L10 20 L20 20 Z" fill="currentColor"/>
             </svg>
           </div>
         </div>

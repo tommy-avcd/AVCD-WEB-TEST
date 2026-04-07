@@ -172,19 +172,35 @@ export class Game {
   changeDirection() {
     if (this.gameState !== 'playing') return
     this.facingRight = !this.facingRight
-    // Haptic feedback
     if (navigator.vibrate) navigator.vibrate(20)
   }
 
+  // Step left: go up to the left
+  stepLeft() {
+    if (this.gameState !== 'playing') return
+    this.facingRight = false
+    this._doStep('left')
+  }
+
+  // Step right: go up to the right
+  stepRight() {
+    if (this.gameState !== 'playing') return
+    this.facingRight = true
+    this._doStep('right')
+  }
+
+  // Legacy: step in current facing direction
   stepUp() {
     if (this.gameState !== 'playing') return
+    this._doStep(this.facingRight ? 'right' : 'left')
+  }
 
+  _doStep(direction) {
     const nextStair = this.stairs[this.currentStair + 1]
     if (!nextStair) return
 
-    // Check if direction matches
-    const needFaceRight = nextStair.direction === 'right'
-    if (this.facingRight !== needFaceRight) {
+    // Check if chosen direction matches next stair
+    if (nextStair.direction !== direction) {
       this._gameOver('fall')
       return
     }
