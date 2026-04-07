@@ -1,16 +1,17 @@
-import React, { useRef, useEffect, useCallback } from 'react'
+import React, { useRef, useEffect } from 'react'
 import { Game } from '../game/Game.js'
 
 export default function GameScreen({ onUpdate, autoStart }) {
   const canvasRef = useRef(null)
   const gameRef = useRef(null)
+  const dirBtnRef = useRef(null)
+  const stepBtnRef = useRef(null)
 
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
 
     const resize = () => {
-      // Use logical pixels for simplicity - canvas matches CSS size
       const w = window.innerWidth
       const h = window.innerHeight
       canvas.width = w
@@ -37,33 +38,79 @@ export default function GameScreen({ onUpdate, autoStart }) {
     }
   }, [onUpdate, autoStart])
 
-  const handleDirection = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === 'mousedown' && e.nativeEvent?.sourceCapabilities?.firesTouchEvents) return
-    if (gameRef.current) {
-      gameRef.current.changeDirection()
-    }
-  }, [])
+  // Native touch/mouse event binding - bypasses React's synthetic events
+  useEffect(() => {
+    const dirBtn = dirBtnRef.current
+    const stepBtn = stepBtnRef.current
+    if (!dirBtn || !stepBtn) return
 
-  const handleStep = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === 'mousedown' && e.nativeEvent?.sourceCapabilities?.firesTouchEvents) return
-    if (gameRef.current) {
-      gameRef.current.stepUp()
+    let isTouchDevice = false
+
+    const doDirection = () => {
+      if (gameRef.current) gameRef.current.changeDirection()
+    }
+
+    const doStep = () => {
+      if (gameRef.current) gameRef.current.stepUp()
+    }
+
+    // Touch handlers
+    const onDirTouch = (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      isTouchDevice = true
+      doDirection()
+    }
+
+    const onStepTouch = (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      isTouchDevice = true
+      doStep()
+    }
+
+    // Mouse handlers (only for desktop - skip if touch device)
+    const onDirMouse = (e) => {
+      if (isTouchDevice) return
+      e.preventDefault()
+      doDirection()
+    }
+
+    const onStepMouse = (e) => {
+      if (isTouchDevice) return
+      e.preventDefault()
+      doStep()
+    }
+
+    // Use { passive: false } to allow preventDefault on touch events
+    dirBtn.addEventListener('touchstart', onDirTouch, { passive: false })
+    stepBtn.addEventListener('touchstart', onStepTouch, { passive: false })
+    dirBtn.addEventListener('mousedown', onDirMouse)
+    stepBtn.addEventListener('mousedown', onStepMouse)
+
+    // Prevent any default touch behavior on the control area
+    const controlArea = dirBtn.parentElement
+    const preventDefault = (e) => e.preventDefault()
+    controlArea.addEventListener('touchmove', preventDefault, { passive: false })
+    controlArea.addEventListener('touchend', preventDefault, { passive: false })
+
+    return () => {
+      dirBtn.removeEventListener('touchstart', onDirTouch)
+      stepBtn.removeEventListener('touchstart', onStepTouch)
+      dirBtn.removeEventListener('mousedown', onDirMouse)
+      stepBtn.removeEventListener('mousedown', onStepMouse)
+      controlArea.removeEventListener('touchmove', preventDefault)
+      controlArea.removeEventListener('touchend', preventDefault)
     }
   }, [])
 
   // Keyboard support
   useEffect(() => {
     const handleKey = (e) => {
-      // Left arrow / H = direction toggle
       if (e.key === 'ArrowLeft' || e.key === 'h' || e.key === 'H') {
         e.preventDefault()
         if (gameRef.current) gameRef.current.changeDirection()
       }
-      // Right arrow / K / Up / Space = step up
       if (e.key === 'ArrowRight' || e.key === 'k' || e.key === 'K' || e.key === 'ArrowUp' || e.key === ' ') {
         e.preventDefault()
         if (gameRef.current) gameRef.current.stepUp()
@@ -77,32 +124,22 @@ export default function GameScreen({ onUpdate, autoStart }) {
     <div className="game-screen">
       <canvas ref={canvasRef} className="game-canvas" />
 
-      {/* HUD - Timer Bar */}
+      {/* HUD */}
       <div className="hud">
         <TimerBar gameRef={gameRef} />
         <ScoreDisplay gameRef={gameRef} />
       </div>
 
-      {/* Control Buttons */}
-      <div className="controls" onTouchStart={(e) => e.preventDefault()}>
-        <div
-          className="ctrl-btn ctrl-direction"
-          onTouchStart={handleDirection}
-          onMouseDown={handleDirection}
-          role="button"
-        >
+      {/* Control Buttons - native event binding via refs */}
+      <div className="controls">
+        <div ref={dirBtnRef} className="ctrl-btn ctrl-direction" role="button">
           <div className="ctrl-icon direction-icon">
             <svg viewBox="0 0 48 48" width="48" height="48">
               <path d="M10 24 L22 12 L22 20 L26 20 L26 12 L38 24 L26 36 L26 28 L22 28 L22 36 Z" fill="currentColor"/>
             </svg>
           </div>
         </div>
-        <div
-          className="ctrl-btn ctrl-step"
-          onTouchStart={handleStep}
-          onMouseDown={handleStep}
-          role="button"
-        >
+        <div ref={stepBtnRef} className="ctrl-btn ctrl-step" role="button">
           <div className="ctrl-icon step-icon">
             <svg viewBox="0 0 48 48" width="48" height="48">
               <path d="M24 8 L40 30 L8 30 Z" fill="currentColor"/>
@@ -115,7 +152,6 @@ export default function GameScreen({ onUpdate, autoStart }) {
 }
 
 function TimerBar({ gameRef }) {
-  const barRef = useRef(null)
   const fillRef = useRef(null)
 
   useEffect(() => {
@@ -127,14 +163,12 @@ function TimerBar({ gameRef }) {
         const ratio = Math.max(0, game.timeRemaining / game.timeLimit)
         fillRef.current.style.width = (ratio * 100) + '%'
 
-        // Color based on urgency
         if (ratio > 0.5) {
           fillRef.current.style.background = 'linear-gradient(90deg, #44cc44, #88ee44)'
         } else if (ratio > 0.25) {
           fillRef.current.style.background = 'linear-gradient(90deg, #ffaa00, #ffdd44)'
         } else {
           fillRef.current.style.background = 'linear-gradient(90deg, #ff2222, #ff6644)'
-          // Pulse effect
           fillRef.current.style.opacity = 0.7 + Math.sin(Date.now() * 0.01) * 0.3
         }
       }
@@ -145,7 +179,7 @@ function TimerBar({ gameRef }) {
   }, [gameRef])
 
   return (
-    <div className="timer-bar" ref={barRef}>
+    <div className="timer-bar">
       <div className="timer-bar-bg">
         <div className="timer-bar-fill" ref={fillRef} />
       </div>
