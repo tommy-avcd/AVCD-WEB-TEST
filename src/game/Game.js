@@ -315,11 +315,6 @@ export class Game {
     this.globalFrame++
 
     if (this.gameState === 'playing') {
-      // Update timer
-      this.timeRemaining -= dt
-      if (this.timeRemaining <= 0) {
-        this._gameOver('timeout')
-      }
 
       // Decay combo
       if (now - this.lastStepTime > COMBO_WINDOW * 2) {

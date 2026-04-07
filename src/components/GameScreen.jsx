@@ -128,7 +128,6 @@ export default function GameScreen({ onUpdate, autoStart }) {
 
       {/* HUD */}
       <div className="hud">
-        <TimerBar gameRef={gameRef} />
         <ScoreDisplay gameRef={gameRef} />
       </div>
 
