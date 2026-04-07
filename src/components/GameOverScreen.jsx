@@ -12,7 +12,7 @@ export default function GameOverScreen({ score, coins, highScore, highCoins, com
   }, [])
 
   return (
-    <div className={`gameover-screen ${show ? 'show' : ''}`}>
+    <div className={`gameover-screen ${show ? 'show' : ''}`} onTouchStart={(e) => e.stopPropagation()}>
       <div className="gameover-content">
         <h2 className="gameover-title">GAME OVER</h2>
 
@@ -43,10 +43,18 @@ export default function GameOverScreen({ score, coins, highScore, highCoins, com
         </div>
 
         <div className={`gameover-buttons ${showDetails ? 'show' : ''}`}>
-          <button className="gameover-btn retry-btn" onClick={onRestart}>
+          <button
+            className="gameover-btn retry-btn"
+            onClick={onRestart}
+            onTouchStart={(e) => { e.stopPropagation(); onRestart(); }}
+          >
             RETRY
           </button>
-          <button className="gameover-btn menu-btn" onClick={onMenu}>
+          <button
+            className="gameover-btn menu-btn"
+            onClick={onMenu}
+            onTouchStart={(e) => { e.stopPropagation(); onMenu(); }}
+          >
             MENU
           </button>
         </div>
