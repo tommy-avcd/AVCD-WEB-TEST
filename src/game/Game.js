@@ -332,6 +332,12 @@ export class Game {
       this._notifyUpdate()
     }
 
+    // Stop loop after gameover animation completes
+    if (this.gameState === 'gameover' && this.globalFrame - this.fallStartFrame > 60) {
+      this._notifyUpdate()
+      return
+    }
+
     requestAnimationFrame(() => this._gameLoop())
   }
 

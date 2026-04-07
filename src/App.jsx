@@ -29,18 +29,9 @@ export default function App() {
 
   const handleUpdate = useCallback((data) => {
     setGameData(data)
-    if (data.gameState === 'gameover') {
-      // Clear any existing timer first
-      if (gameOverTimerRef.current) {
-        clearTimeout(gameOverTimerRef.current)
-      }
+    if (data.gameState === 'gameover' && !gameOverTimerRef.current) {
       gameOverTimerRef.current = setTimeout(() => {
-        setScreen(prev => {
-          // Only show gameover if still in playing state (not restarted)
-          if (prev === 'playing') return 'gameover'
-          return prev
-        })
-        gameOverTimerRef.current = null
+        setScreen('gameover')
       }, 800)
     }
   }, [])
