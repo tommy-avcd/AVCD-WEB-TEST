@@ -98,6 +98,13 @@ export class Game {
 
   _generateStairs(count) {
     const startIdx = this.stairs.length
+    // Screen boundary: stairs are drawn at camOffsetX + stair.x
+    // camOffsetX = canvas.width / 2, so stair.x range should stay within [-width/2 + margin, width/2 - margin]
+    const halfW = (this.canvas.width || 400) / 2
+    const margin = STAIR_WIDTH + 20 // keep stair fully visible
+    const maxX = halfW - margin
+    const minX = -halfW + margin
+
     for (let i = 0; i < count; i++) {
       const idx = startIdx + i
       if (idx === 0) {
@@ -111,9 +118,19 @@ export class Game {
         })
       } else {
         const prev = this.stairs[idx - 1]
-        const goRight = Math.random() > 0.5
+        let goRight = Math.random() > 0.5
+        const nextX = prev.x + (goRight ? STAIR_GAP_X : -STAIR_GAP_X)
+
+        // Force direction if next stair would go off screen
+        if (nextX + STAIR_WIDTH > maxX) {
+          goRight = false
+        } else if (nextX < minX) {
+          goRight = true
+        }
+
+        const x = prev.x + (goRight ? STAIR_GAP_X : -STAIR_GAP_X)
         this.stairs.push({
-          x: prev.x + (goRight ? STAIR_GAP_X : -STAIR_GAP_X),
+          x,
           y: prev.y - STAIR_GAP_Y,
           direction: goRight ? 'right' : 'left',
           hasCoin: Math.random() < COIN_CHANCE,
