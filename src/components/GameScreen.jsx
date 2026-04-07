@@ -40,6 +40,7 @@ export default function GameScreen({ onUpdate, autoStart }) {
   const handleDirection = useCallback((e) => {
     e.preventDefault()
     e.stopPropagation()
+    if (e.type === 'mousedown' && e.nativeEvent?.sourceCapabilities?.firesTouchEvents) return
     if (gameRef.current) {
       gameRef.current.changeDirection()
     }
@@ -48,6 +49,7 @@ export default function GameScreen({ onUpdate, autoStart }) {
   const handleStep = useCallback((e) => {
     e.preventDefault()
     e.stopPropagation()
+    if (e.type === 'mousedown' && e.nativeEvent?.sourceCapabilities?.firesTouchEvents) return
     if (gameRef.current) {
       gameRef.current.stepUp()
     }
@@ -82,29 +84,31 @@ export default function GameScreen({ onUpdate, autoStart }) {
       </div>
 
       {/* Control Buttons */}
-      <div className="controls">
-        <button
+      <div className="controls" onTouchStart={(e) => e.preventDefault()}>
+        <div
           className="ctrl-btn ctrl-direction"
           onTouchStart={handleDirection}
           onMouseDown={handleDirection}
+          role="button"
         >
           <div className="ctrl-icon direction-icon">
             <svg viewBox="0 0 48 48" width="48" height="48">
               <path d="M10 24 L22 12 L22 20 L26 20 L26 12 L38 24 L26 36 L26 28 L22 28 L22 36 Z" fill="currentColor"/>
             </svg>
           </div>
-        </button>
-        <button
+        </div>
+        <div
           className="ctrl-btn ctrl-step"
           onTouchStart={handleStep}
           onMouseDown={handleStep}
+          role="button"
         >
           <div className="ctrl-icon step-icon">
             <svg viewBox="0 0 48 48" width="48" height="48">
               <path d="M24 8 L40 30 L8 30 Z" fill="currentColor"/>
             </svg>
           </div>
-        </button>
+        </div>
       </div>
     </div>
   )
