@@ -189,10 +189,13 @@ export class Game {
     this._doStep('right')
   }
 
-  // Legacy: step in current facing direction
+  // Step up: always go in the correct direction (auto-match next stair)
   stepUp() {
     if (this.gameState !== 'playing') return
-    this._doStep(this.facingRight ? 'right' : 'left')
+    const nextStair = this.stairs[this.currentStair + 1]
+    if (!nextStair) return
+    this.facingRight = nextStair.direction === 'right'
+    this._doStep(nextStair.direction)
   }
 
   _doStep(direction) {

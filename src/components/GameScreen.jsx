@@ -51,7 +51,7 @@ export default function GameScreen({ onUpdate, autoStart }) {
     }
 
     const doRight = () => {
-      if (gameRef.current) gameRef.current.stepRight()
+      if (gameRef.current) gameRef.current.stepUp()
     }
 
     // Touch handlers
@@ -107,15 +107,15 @@ export default function GameScreen({ onUpdate, autoStart }) {
   // Keyboard support
   useEffect(() => {
     const handleKey = (e) => {
-      // Left arrow / H = step left (go up-left)
+      // Left arrow / H = direction change + step left
       if (e.key === 'ArrowLeft' || e.key === 'h' || e.key === 'H') {
         e.preventDefault()
         if (gameRef.current) gameRef.current.stepLeft()
       }
-      // Right arrow / K / L = step right (go up-right)
-      if (e.key === 'ArrowRight' || e.key === 'k' || e.key === 'K' || e.key === 'l' || e.key === 'L') {
+      // Right arrow / K / L / Space / Up = step up (auto direction)
+      if (e.key === 'ArrowRight' || e.key === 'k' || e.key === 'K' || e.key === 'l' || e.key === 'L' || e.key === 'ArrowUp' || e.key === ' ') {
         e.preventDefault()
-        if (gameRef.current) gameRef.current.stepRight()
+        if (gameRef.current) gameRef.current.stepUp()
       }
     }
     window.addEventListener('keydown', handleKey)
@@ -137,14 +137,14 @@ export default function GameScreen({ onUpdate, autoStart }) {
         <div ref={dirBtnRef} className="ctrl-btn ctrl-direction" role="button">
           <div className="ctrl-icon">
             <svg viewBox="0 0 48 48" width="48" height="48">
-              <path d="M30 8 L10 28 L20 28 L18 40 L38 20 L28 20 Z" fill="currentColor"/>
+              <path d="M10 24 L22 12 L22 20 L26 20 L26 12 L38 24 L26 36 L26 28 L22 28 L22 36 Z" fill="currentColor"/>
             </svg>
           </div>
         </div>
         <div ref={stepBtnRef} className="ctrl-btn ctrl-step" role="button">
           <div className="ctrl-icon">
             <svg viewBox="0 0 48 48" width="48" height="48">
-              <path d="M18 8 L38 28 L28 28 L30 40 L10 20 L20 20 Z" fill="currentColor"/>
+              <path d="M24 8 L40 30 L8 30 Z" fill="currentColor"/>
             </svg>
           </div>
         </div>

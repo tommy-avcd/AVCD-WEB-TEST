@@ -36,12 +36,12 @@ export default function StartScreen({ onStart }) {
 
         <div className="start-controls-guide">
           <div className="guide-item">
-            <span className="guide-icon">◀</span>
-            <span className="guide-text">왼쪽 올라가기</span>
+            <span className="guide-icon">◄►</span>
+            <span className="guide-text">방향전환+올라가기</span>
           </div>
           <div className="guide-item">
-            <span className="guide-icon">▶</span>
-            <span className="guide-text">오른쪽 올라가기</span>
+            <span className="guide-icon">▲</span>
+            <span className="guide-text">올라가기</span>
           </div>
         </div>
       </div>
