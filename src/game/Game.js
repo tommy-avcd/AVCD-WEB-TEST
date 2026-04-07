@@ -12,10 +12,10 @@ const COIN_CHANCE = 0.2 // 20% chance for coin
 const COMBO_WINDOW = 600 // ms for combo
 
 // Timer settings
-const BASE_TIME_LIMIT = 7000 // ms base time per step (starts slow)
-const TIME_REDUCTION_PER_TIER = 200 // ms reduction every 50 stairs (was 300)
+const BASE_TIME_LIMIT = 70000 // ms base time per step
+const TIME_REDUCTION_PER_TIER = 2000 // ms reduction every 50 stairs
 const TIER_SIZE = 50
-const MIN_TIME_LIMIT = 1200 // minimum time limit (was 800)
+const MIN_TIME_LIMIT = 12000 // minimum time limit
 
 export class Game {
   constructor(canvas, onUpdate) {
