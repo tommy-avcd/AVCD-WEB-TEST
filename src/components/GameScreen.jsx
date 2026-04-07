@@ -56,11 +56,13 @@ export default function GameScreen({ onUpdate, autoStart }) {
   // Keyboard support
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'a' || e.key === 'd') {
+      // Left arrow / H = direction toggle
+      if (e.key === 'ArrowLeft' || e.key === 'h' || e.key === 'H') {
         e.preventDefault()
         if (gameRef.current) gameRef.current.changeDirection()
       }
-      if (e.key === 'ArrowUp' || e.key === ' ' || e.key === 'w') {
+      // Right arrow / K / Up / Space = step up
+      if (e.key === 'ArrowRight' || e.key === 'k' || e.key === 'K' || e.key === 'ArrowUp' || e.key === ' ') {
         e.preventDefault()
         if (gameRef.current) gameRef.current.stepUp()
       }

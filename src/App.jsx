@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef } from 'react'
 import GameScreen from './components/GameScreen.jsx'
 import StartScreen from './components/StartScreen.jsx'
 import GameOverScreen from './components/GameOverScreen.jsx'
@@ -15,23 +15,32 @@ export default function App() {
     highCoins: 0,
   })
   const [gameKey, setGameKey] = useState(0)
+  const gameOverTimerRef = useRef(null)
 
   const handleStart = useCallback(() => {
+    // Clear any pending game over timer from previous game
+    if (gameOverTimerRef.current) {
+      clearTimeout(gameOverTimerRef.current)
+      gameOverTimerRef.current = null
+    }
     setScreen('playing')
     setGameKey(k => k + 1)
-  }, [])
-
-  const handleGameOver = useCallback((data) => {
-    setGameData(data)
-    setScreen('gameover')
   }, [])
 
   const handleUpdate = useCallback((data) => {
     setGameData(data)
     if (data.gameState === 'gameover') {
-      // Delay showing game over screen for dramatic effect
-      setTimeout(() => {
-        setScreen('gameover')
+      // Clear any existing timer first
+      if (gameOverTimerRef.current) {
+        clearTimeout(gameOverTimerRef.current)
+      }
+      gameOverTimerRef.current = setTimeout(() => {
+        setScreen(prev => {
+          // Only show gameover if still in playing state (not restarted)
+          if (prev === 'playing') return 'gameover'
+          return prev
+        })
+        gameOverTimerRef.current = null
       }, 800)
     }
   }, [])

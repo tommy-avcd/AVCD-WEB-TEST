@@ -12,7 +12,7 @@ const COIN_CHANCE = 0.2 // 20% chance for coin
 const COMBO_WINDOW = 600 // ms for combo
 
 // Timer settings
-const BASE_TIME_LIMIT = 3500 // ms base time per step
+const BASE_TIME_LIMIT = 7000 // ms base time per step (starts slow)
 const TIME_REDUCTION_PER_TIER = 300 // ms reduction every 50 stairs
 const TIER_SIZE = 50
 const MIN_TIME_LIMIT = 800 // minimum time limit
