@@ -23,6 +23,7 @@ export class Game {
     this.ctx = canvas.getContext('2d')
     this.onUpdate = onUpdate
     this.particles = new ParticleSystem()
+    this.bgFireworks = new ParticleSystem() // screen-space fireworks behind everything
 
     this.reset()
     this.animFrame = 0
@@ -80,6 +81,7 @@ export class Game {
     this.cameraY = 0
     this.targetCameraY = 0
     this.particles.clear()
+    if (this.bgFireworks) this.bgFireworks.clear()
   }
 
   _generateBuildings() {
@@ -244,8 +246,12 @@ export class Game {
     this.shakeIntensity = 3 + Math.min(this.combo * 0.5, 5)
     this.particles.emit(this.charX + STAIR_WIDTH / 2, this.charY + 20 * CHAR_PIXEL_SIZE, 'dust', 4)
 
-    // Firework on every step
-    this.particles.emit(this.charX + STAIR_WIDTH / 2, this.charY, 'firework', 20)
+    // Firework in the sky background
+    const w = this.canvas.width || 400
+    const h = this.canvas.height || 700
+    const fwX = Math.random() * w
+    const fwY = Math.random() * h * 0.6 // upper 60% of screen
+    this.bgFireworks.emit(fwX, fwY, 'firework', 25)
 
     // Speed lines at high combo
     if (this.combo >= 5) {
@@ -354,6 +360,7 @@ export class Game {
 
     // Update particles
     this.particles.update()
+    this.bgFireworks.update()
 
     // Animation frame counter
     this.animFrame = Math.floor(this.globalFrame / 20) % 2
@@ -389,6 +396,9 @@ export class Game {
 
     // Draw background
     this._drawBackground(ctx, w, h)
+
+    // Draw fireworks in screen space (behind stairs)
+    this.bgFireworks.draw(ctx)
 
     // Apply camera transform
     ctx.save()
