@@ -3,6 +3,7 @@ import { ParticleSystem } from './Particles.js'
 import { soundManager } from './SoundManager.js'
 import { CrowdSystem } from './CrowdSystem.js'
 import { BackgroundTheme } from './BackgroundTheme.js'
+import { WeatherSystem } from './WeatherSystem.js'
 
 const STAIR_WIDTH = 64
 const STAIR_HEIGHT = 16
@@ -14,9 +15,9 @@ const VISIBLE_STAIRS_BEHIND = 20 // keep 20 past stairs visible
 const COIN_CHANCE = 0.2
 const COMBO_WINDOW = 600
 
-// Speed: animation frame speed increases 1.1x every 10 floors
-const SPEED_TIER = 10
-const SPEED_MULTIPLIER = 1.1
+// Speed: 3x faster every 20 floors
+const SPEED_TIER = 20
+const SPEED_MULTIPLIER = 3
 
 export class Game {
   constructor(canvas, onUpdate) {
@@ -27,6 +28,7 @@ export class Game {
     this.bgFireworks = new ParticleSystem()
     this.crowd = new CrowdSystem()
     this.bgTheme = new BackgroundTheme()
+    this.weather = new WeatherSystem()
 
     this.reset()
     this.animFrame = 0
@@ -235,6 +237,16 @@ export class Game {
       this._generateStairs(10)
     }
 
+    // Check for treasure box at 100-floor milestones
+    if (this.currentStair % 100 === 0 && this.currentStair > 0) {
+      const treasure = this.bgTheme.collectTreasure(this.currentStair)
+      if (treasure) {
+        soundManager.play('coin')
+        this.bgFireworks.emit(Math.random() * (this.canvas.width || 400), 100, 'firework', 40)
+        this.bgFireworks.emit(Math.random() * (this.canvas.width || 400), 150, 'firework', 40)
+      }
+    }
+
     // Haptic
     if (navigator.vibrate) {
       navigator.vibrate(this.combo >= 5 ? [15, 5, 15] : 15)
@@ -311,10 +323,11 @@ export class Game {
     // Crowd system
     this.crowd.update(this.currentStair, dt)
 
-    // Background theme
+    // Background theme & weather
     const w = this.canvas.width || 400
     const h = this.canvas.height || 700
     this.bgTheme.update(this.currentStair, w, h, dt)
+    this.weather.update(this.currentStair, w, h, dt)
 
     // Animation frame - speed affects animation rate
     const animSpeed = Math.max(5, Math.floor(20 / this.speedMultiplier))
@@ -350,8 +363,18 @@ export class Game {
     // Draw themed background sky
     this.bgTheme.drawSky(ctx, w, h, this.currentStair, this.globalFrame)
 
+    // Day/night tint
+    const tint = this.weather.getDayTint(this.currentStair)
+    ctx.globalAlpha = tint.a
+    ctx.fillStyle = `rgb(${tint.r},${tint.g},${tint.b})`
+    ctx.fillRect(0, 0, w, h)
+    ctx.globalAlpha = 1
+
     // Draw buildings (parallax)
     this._drawBuildings(ctx, w, h)
+
+    // Draw landmarks (parallax, behind stairs)
+    this.bgTheme.drawLandmarks(ctx, w, h, this.cameraY, this.currentStair)
 
     // Draw flying background characters
     this.bgTheme.drawFlyingObjects(ctx, this.globalFrame)
@@ -359,13 +382,16 @@ export class Game {
     // Draw fireworks in screen space
     this.bgFireworks.draw(ctx)
 
+    // Weather particles (behind stairs)
+    this.weather.draw(ctx, w, h)
+
     // Camera transform
     ctx.save()
     const camOffsetX = w / 2
     const camOffsetY = -this.cameraY
     ctx.translate(camOffsetX, camOffsetY)
 
-    // Draw stairs (including past 20)
+    // Draw stairs with themed colors
     this._drawStairs(ctx, w, h)
 
     // Draw character
@@ -378,6 +404,9 @@ export class Game {
 
     // Draw crowd (screen space, on top)
     this.crowd.draw(ctx, w, h)
+
+    // Treasure notification
+    this.bgTheme.drawTreasureNotification(ctx, w, h)
 
     // Speed overlay at high combo
     if (this.combo >= 10) {
@@ -407,27 +436,33 @@ export class Game {
   }
 
   _drawStairs(ctx, w, h) {
-    // Show 20 stairs behind and 14 ahead
     const startIdx = Math.max(0, this.currentStair - VISIBLE_STAIRS_BEHIND)
     const endIdx = Math.min(this.stairs.length, this.currentStair + VISIBLE_STAIRS_AHEAD)
+
+    // Get stair theme based on current floor
+    const stairTheme = this.bgTheme.getStairTheme(this.currentStair)
 
     for (let i = startIdx; i < endIdx; i++) {
       const stair = this.stairs[i]
 
-      // Past stairs fade slightly
       if (i < this.currentStair) {
         ctx.globalAlpha = 0.5
       }
 
-      // Current stair highlight
       if (i === this.currentStair) {
         ctx.globalAlpha = 1
         ctx.fillStyle = 'rgba(255, 255, 100, 0.15)'
         ctx.fillRect(stair.x - 4, stair.y - 4, STAIR_WIDTH + 8, STAIR_HEIGHT + 8)
       }
 
-      drawStair(ctx, stair.x, stair.y, STAIR_WIDTH, STAIR_HEIGHT)
+      // Use themed stair colors
+      drawStair(ctx, stair.x, stair.y, STAIR_WIDTH, STAIR_HEIGHT, stairTheme)
       ctx.globalAlpha = 1
+
+      // Treasure chest at 100-floor milestones
+      if (i % 100 === 0 && i > 0 && !this.bgTheme.treasureCollected.has(i)) {
+        this._drawTreasureChest(ctx, stair.x + STAIR_WIDTH / 2 - 8, stair.y - 28)
+      }
 
       // Direction indicator for next stair
       if (i === this.currentStair + 1) {
@@ -488,6 +523,24 @@ export class Game {
       this.stairs[this.currentStair]?.y - 2 || 0,
       24, 3
     )
+  }
+
+  _drawTreasureChest(ctx, x, y) {
+    // Chest body
+    ctx.fillStyle = '#aa7722'
+    ctx.fillRect(x, y, 16, 12)
+    // Lid
+    ctx.fillStyle = '#cc9933'
+    ctx.fillRect(x - 1, y - 4, 18, 5)
+    // Lock
+    ctx.fillStyle = '#ffdd44'
+    ctx.fillRect(x + 6, y + 2, 4, 4)
+    // Sparkle
+    if (this.globalFrame % 20 < 10) {
+      ctx.fillStyle = '#ffff88'
+      ctx.fillRect(x + 2, y - 8, 2, 2)
+      ctx.fillRect(x + 12, y - 6, 2, 2)
+    }
   }
 
   _drawSpeedOverlay(ctx, w, h) {

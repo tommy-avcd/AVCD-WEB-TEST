@@ -272,20 +272,25 @@ export function drawSprite(ctx, sprite, x, y, pixelSize, flip = false) {
   ctx.restore()
 }
 
-// Draw a stair block
-export function drawStair(ctx, x, y, width, height) {
-  ctx.fillStyle = PALETTE.stairLight
+// Draw a stair block with customizable colors
+export function drawStair(ctx, x, y, width, height, theme) {
+  const light = theme?.light || PALETTE.stairLight
+  const mid = theme?.mid || PALETTE.stairMid
+  const dark = theme?.dark || PALETTE.stairDark
+  const edge = theme?.edge || PALETTE.stairEdge
+
+  ctx.fillStyle = light
   ctx.fillRect(x, y, width, height)
-  ctx.fillStyle = PALETTE.white
+  ctx.fillStyle = '#ffffff'
   ctx.fillRect(x, y, width, 2)
-  ctx.fillStyle = PALETTE.stairMid
+  ctx.fillStyle = mid
   ctx.fillRect(x, y + height * 0.4, width, height * 0.3)
-  ctx.fillStyle = PALETTE.stairDark
+  ctx.fillStyle = dark
   ctx.fillRect(x, y + height - 4, width, 4)
-  ctx.fillStyle = PALETTE.stairEdge
+  ctx.fillStyle = edge
   ctx.fillRect(x, y, 2, height)
   ctx.fillRect(x + width - 2, y, 2, height)
-  ctx.fillStyle = PALETTE.stairDark
+  ctx.fillStyle = dark
   for (let i = 0; i < Math.floor(width / 16); i++) {
     ctx.fillRect(x + 8 + i * 16, y + 6, 1, height - 12)
   }

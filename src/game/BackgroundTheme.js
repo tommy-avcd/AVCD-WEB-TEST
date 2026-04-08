@@ -1,50 +1,149 @@
-// Background themes that change every 100 floors
-// Includes sky colors and flying background characters
+// Background themes, landmarks, stair themes, flying characters
 
 const THEMES = [
-  { floor: 0, sky: ['#1a1a3e', '#2a2a5e', '#3a3a7e'], name: 'Night City' },
-  { floor: 100, sky: ['#1a0a2e', '#3a1a4e', '#5a2a6e'], name: 'Purple Night' },
-  { floor: 200, sky: ['#0a1a2e', '#1a3a5e', '#2a5a7e'], name: 'Deep Ocean' },
-  { floor: 300, sky: ['#2e1a0a', '#5e3a1a', '#8e5a2a'], name: 'Desert Dusk' },
-  { floor: 400, sky: ['#0a2e1a', '#1a5e3a', '#2a7e5a'], name: 'Aurora Green' },
-  { floor: 500, sky: ['#2e0a1a', '#5e1a3a', '#7e2a4a'], name: 'Crimson Sky' },
-  { floor: 600, sky: ['#1a1a1a', '#2a2a3a', '#3a3a5a'], name: 'Storm' },
-  { floor: 700, sky: ['#0a0a3e', '#1a1a6e', '#3a3aae'], name: 'Galaxy' },
-  { floor: 800, sky: ['#3e1a1a', '#6e2a1a', '#ae4a1a'], name: 'Volcano' },
-  { floor: 900, sky: ['#1a2e3e', '#2a4e6e', '#4a7eae'], name: 'Dawn' },
-  { floor: 1000, sky: ['#0a0a0a', '#1a1a2a', '#2a2a4a'], name: 'Deep Space' },
-  { floor: 1100, sky: ['#2e2e0a', '#4e4e1a', '#7e7e2a'], name: 'Golden Hour' },
-  { floor: 1200, sky: ['#0a2e2e', '#1a4e4e', '#2a6e6e'], name: 'Teal Ocean' },
-  { floor: 1300, sky: ['#2e0a2e', '#4e1a4e', '#7e2a7e'], name: 'Neon Purple' },
-  { floor: 1400, sky: ['#1a0a0a', '#3e1a0a', '#6e3a1a'], name: 'Mars' },
-  { floor: 1500, sky: ['#0a0a1a', '#0a0a3a', '#1a1a6a'], name: 'Midnight' },
-  { floor: 1600, sky: ['#2e1a2e', '#4e3a4e', '#7e5a7e'], name: 'Lavender' },
-  { floor: 1700, sky: ['#1a2e0a', '#3a5e1a', '#5a8e2a'], name: 'Northern Lights' },
-  { floor: 1800, sky: ['#3e2e1a', '#6e4e2a', '#ae7e3a'], name: 'Copper' },
-  { floor: 1900, sky: ['#0a1a3e', '#1a3a6e', '#2a5aae'], name: 'Sapphire' },
-  { floor: 2000, sky: ['#000000', '#0a0a1a', '#1a1a3a'], name: 'Void' },
+  { floor: 0, sky: ['#1a1a3e', '#2a2a5e', '#3a3a7e'] },
+  { floor: 100, sky: ['#1a0a2e', '#3a1a4e', '#5a2a6e'] },
+  { floor: 200, sky: ['#0a1a2e', '#1a3a5e', '#2a5a7e'] },
+  { floor: 300, sky: ['#2e1a0a', '#5e3a1a', '#8e5a2a'] },
+  { floor: 400, sky: ['#0a2e1a', '#1a5e3a', '#2a7e5a'] },
+  { floor: 500, sky: ['#2e0a1a', '#5e1a3a', '#7e2a4a'] },
+  { floor: 600, sky: ['#1a1a1a', '#2a2a3a', '#3a3a5a'] },
+  { floor: 700, sky: ['#0a0a3e', '#1a1a6e', '#3a3aae'] },
+  { floor: 800, sky: ['#3e1a1a', '#6e2a1a', '#ae4a1a'] },
+  { floor: 900, sky: ['#1a2e3e', '#2a4e6e', '#4a7eae'] },
+  { floor: 1000, sky: ['#0a0a0a', '#1a1a2a', '#2a2a4a'] },
+  { floor: 1100, sky: ['#2e2e0a', '#4e4e1a', '#7e7e2a'] },
+  { floor: 1200, sky: ['#0a2e2e', '#1a4e4e', '#2a6e6e'] },
+  { floor: 1300, sky: ['#2e0a2e', '#4e1a4e', '#7e2a7e'] },
+  { floor: 1400, sky: ['#1a0a0a', '#3e1a0a', '#6e3a1a'] },
+  { floor: 1500, sky: ['#0a0a1a', '#0a0a3a', '#1a1a6a'] },
+  { floor: 1600, sky: ['#2e1a2e', '#4e3a4e', '#7e5a7e'] },
+  { floor: 1700, sky: ['#1a2e0a', '#3a5e1a', '#5a8e2a'] },
+  { floor: 1800, sky: ['#3e2e1a', '#6e4e2a', '#ae7e3a'] },
+  { floor: 1900, sky: ['#0a1a3e', '#1a3a6e', '#2a5aae'] },
+  { floor: 2000, sky: ['#000000', '#0a0a1a', '#1a1a3a'] },
 ]
 
-// Background flying characters
+// Country landmarks drawn as pixel art silhouettes
+const LANDMARKS = [
+  { floor: 100, name: 'Torii Gate', color: '#cc0000', draw: (ctx) => {
+    ctx.fillRect(-20, -40, 4, 40); ctx.fillRect(16, -40, 4, 40)
+    ctx.fillRect(-25, -42, 50, 5); ctx.fillRect(-22, -32, 44, 3)
+  }},
+  { floor: 200, name: 'Big Ben', color: '#ddbb77', draw: (ctx) => {
+    ctx.fillRect(-8, -70, 16, 70); ctx.fillRect(-12, -75, 24, 8)
+    ctx.fillRect(-6, -80, 12, 6); ctx.fillRect(-3, -85, 6, 6)
+    ctx.fillStyle = '#8899aa'; ctx.fillRect(-4, -60, 8, 8)
+  }},
+  { floor: 300, name: 'Taj Mahal', color: '#ffffff', draw: (ctx) => {
+    ctx.fillRect(-20, -30, 40, 30); ctx.fillRect(-10, -50, 20, 22)
+    ctx.beginPath(); ctx.arc(0, -50, 10, Math.PI, 0); ctx.fill()
+    ctx.fillRect(-25, -30, 4, 30); ctx.fillRect(21, -30, 4, 30)
+  }},
+  { floor: 400, name: 'Colosseum', color: '#cc9966', draw: (ctx) => {
+    ctx.fillRect(-30, -25, 60, 25)
+    for (let i = 0; i < 6; i++) ctx.clearRect(-26 + i * 10, -20, 6, 12)
+    ctx.fillRect(-30, -28, 60, 4)
+  }},
+  { floor: 500, name: 'Eiffel Tower', color: '#887766', draw: (ctx) => {
+    ctx.fillRect(-2, -80, 4, 80); ctx.fillRect(-15, -15, 30, 4)
+    ctx.fillRect(-10, -40, 20, 3); ctx.fillRect(-20, 0, 8, 4)
+    ctx.fillRect(12, 0, 8, 4)
+    ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(-2, -65); ctx.lineTo(-2, 0); ctx.fill()
+    ctx.beginPath(); ctx.moveTo(20, 0); ctx.lineTo(2, -65); ctx.lineTo(2, 0); ctx.fill()
+  }},
+  { floor: 600, name: 'Sagrada Familia', color: '#ddaa66', draw: (ctx) => {
+    ctx.fillRect(-20, -40, 40, 40)
+    ctx.fillRect(-18, -55, 8, 18); ctx.fillRect(-4, -60, 8, 22); ctx.fillRect(10, -55, 8, 18)
+    ctx.fillRect(-2, -65, 4, 8)
+  }},
+  { floor: 700, name: 'Windmill', color: '#cc6633', draw: (ctx) => {
+    ctx.fillRect(-8, -35, 16, 35)
+    ctx.fillStyle = '#dddddd'
+    ctx.save(); ctx.rotate(0.3)
+    ctx.fillRect(-2, -35, 4, -25); ctx.fillRect(-2, -35, 4, 25)
+    ctx.restore(); ctx.save(); ctx.rotate(1.87)
+    ctx.fillRect(-2, -35, 4, -25); ctx.fillRect(-2, -35, 4, 25)
+    ctx.restore()
+  }},
+  { floor: 800, name: 'Gyeongbokgung', color: '#33aa66', draw: (ctx) => {
+    ctx.fillRect(-25, -15, 50, 15); ctx.fillStyle = '#225544'
+    ctx.fillRect(-28, -20, 56, 8)
+    ctx.beginPath(); ctx.moveTo(-30, -18); ctx.lineTo(0, -30); ctx.lineTo(30, -18); ctx.fill()
+    ctx.fillStyle = '#cc4444'; ctx.fillRect(-20, -8, 40, 3)
+  }},
+  { floor: 900, name: 'Mermaid', color: '#448866', draw: (ctx) => {
+    ctx.fillRect(-6, -30, 12, 20); ctx.fillRect(-3, -35, 6, 6)
+    ctx.fillStyle = '#88ccaa'; ctx.fillRect(-8, -10, 16, 10)
+  }},
+  { floor: 1000, name: 'Christ Redeemer', color: '#dddddd', draw: (ctx) => {
+    ctx.fillRect(-3, -50, 6, 50); ctx.fillRect(-25, -45, 50, 5)
+    ctx.fillRect(-4, -55, 8, 8)
+  }},
+]
+
+// Stair color themes per 100 floors
+const STAIR_THEMES = [
+  { floor: 0, light: '#c8b89a', mid: '#a89070', dark: '#7a6048', edge: '#5a4030', name: 'Stone' },
+  { floor: 100, light: '#cc8888', mid: '#aa5555', dark: '#883333', edge: '#661111', name: 'Red Brick' },
+  { floor: 200, light: '#8888cc', mid: '#5555aa', dark: '#333388', edge: '#111166', name: 'Blue Marble' },
+  { floor: 300, light: '#ccaa66', mid: '#aa8844', dark: '#886633', edge: '#664411', name: 'Sandstone' },
+  { floor: 400, light: '#88cc88', mid: '#55aa55', dark: '#338833', edge: '#116611', name: 'Jade' },
+  { floor: 500, light: '#dddddd', mid: '#bbbbbb', dark: '#888888', edge: '#666666', name: 'Marble' },
+  { floor: 600, light: '#ffcc88', mid: '#ddaa66', dark: '#bb8844', edge: '#996622', name: 'Gold' },
+  { floor: 700, light: '#ff8888', mid: '#dd5555', dark: '#bb3333', edge: '#991111', name: 'Ruby' },
+  { floor: 800, light: '#88ddff', mid: '#55bbdd', dark: '#3399bb', edge: '#117799', name: 'Crystal' },
+  { floor: 900, light: '#aaddaa', mid: '#88bb88', dark: '#669966', edge: '#447744', name: 'Moss' },
+  { floor: 1000, light: '#222233', mid: '#111122', dark: '#000011', edge: '#ffdd44', name: 'Obsidian' },
+  { floor: 1100, light: '#ffddaa', mid: '#eebb88', dark: '#cc9966', edge: '#aa7744', name: 'Terracotta' },
+  { floor: 1200, light: '#ddaaff', mid: '#bb88dd', dark: '#9966bb', edge: '#774499', name: 'Amethyst' },
+  { floor: 1300, light: '#aaffaa', mid: '#88dd88', dark: '#66bb66', edge: '#449944', name: 'Emerald' },
+  { floor: 1400, light: '#ffaaaa', mid: '#dd8888', dark: '#bb6666', edge: '#994444', name: 'Rose Quartz' },
+  { floor: 1500, light: '#aaccff', mid: '#88aadd', dark: '#6688bb', edge: '#446699', name: 'Sapphire' },
+]
+
+// Country treasure items
+const COUNTRY_ITEMS = [
+  { floor: 100, country: 'Japan', item: 'Katana', icon: '#cc0000', shape: 'sword' },
+  { floor: 200, country: 'UK', item: 'Crown', icon: '#ffdd44', shape: 'crown' },
+  { floor: 300, country: 'India', item: 'Lotus', icon: '#ff88aa', shape: 'flower' },
+  { floor: 400, country: 'Italy', item: 'Pizza', icon: '#ffaa44', shape: 'circle' },
+  { floor: 500, country: 'France', item: 'Baguette', icon: '#ddaa66', shape: 'rect' },
+  { floor: 600, country: 'Spain', item: 'Fan', icon: '#cc0000', shape: 'fan' },
+  { floor: 700, country: 'Netherlands', item: 'Tulip', icon: '#ff4488', shape: 'flower' },
+  { floor: 800, country: 'Korea', item: 'Hanbok', icon: '#ff6688', shape: 'rect' },
+  { floor: 900, country: 'Denmark', item: 'Viking Helm', icon: '#888899', shape: 'crown' },
+  { floor: 1000, country: 'Portugal', item: 'Compass', icon: '#ffdd44', shape: 'circle' },
+  { floor: 1100, country: 'Brazil', item: 'Samba Drum', icon: '#ffaa00', shape: 'circle' },
+  { floor: 1200, country: 'Germany', item: 'Pretzel', icon: '#cc8844', shape: 'circle' },
+  { floor: 1300, country: 'Mexico', item: 'Sombrero', icon: '#ffdd44', shape: 'crown' },
+  { floor: 1400, country: 'China', item: 'Dragon Pearl', icon: '#44ddaa', shape: 'circle' },
+  { floor: 1500, country: 'Russia', item: 'Matryoshka', icon: '#ff4444', shape: 'rect' },
+]
+
 const BG_CHARACTERS = [
-  { type: 'dragon', minFloor: 100, emoji: null, color1: '#44cc44', color2: '#228822', w: 40, h: 20 },
-  { type: 'ufo', minFloor: 300, emoji: null, color1: '#aaaacc', color2: '#6666aa', w: 30, h: 12 },
-  { type: 'astronaut', minFloor: 500, emoji: null, color1: '#ffffff', color2: '#aaaacc', w: 16, h: 20 },
-  { type: 'rocket', minFloor: 700, emoji: null, color1: '#ff4444', color2: '#ffaa00', w: 12, h: 28 },
-  { type: 'robot', minFloor: 900, emoji: null, color1: '#888899', color2: '#5555aa', w: 18, h: 22 },
-  { type: 'bird', minFloor: 0, emoji: null, color1: '#ffaa44', color2: '#cc7722', w: 20, h: 10 },
-  { type: 'balloon', minFloor: 200, emoji: null, color1: '#ff4488', color2: '#cc2266', w: 14, h: 20 },
-  { type: 'witch', minFloor: 600, emoji: null, color1: '#2a1a4e', color2: '#ffaa00', w: 24, h: 20 },
-  { type: 'angel', minFloor: 1000, emoji: null, color1: '#ffffff', color2: '#ffddaa', w: 20, h: 20 },
-  { type: 'phoenix', minFloor: 1500, emoji: null, color1: '#ff6600', color2: '#ffdd00', w: 36, h: 18 },
-  { type: 'satellite', minFloor: 800, emoji: null, color1: '#aabbcc', color2: '#667788', w: 24, h: 8 },
-  { type: 'comet', minFloor: 1200, emoji: null, color1: '#aaddff', color2: '#4488ff', w: 30, h: 6 },
+  { type: 'dragon', minFloor: 100 },
+  { type: 'ufo', minFloor: 300 },
+  { type: 'astronaut', minFloor: 500 },
+  { type: 'rocket', minFloor: 700 },
+  { type: 'robot', minFloor: 900 },
+  { type: 'bird', minFloor: 0 },
+  { type: 'balloon', minFloor: 200 },
+  { type: 'witch', minFloor: 600 },
+  { type: 'angel', minFloor: 1000 },
+  { type: 'phoenix', minFloor: 1500 },
+  { type: 'satellite', minFloor: 800 },
+  { type: 'comet', minFloor: 1200 },
 ]
 
 export class BackgroundTheme {
   constructor() {
     this.flyingObjects = []
     this.lastSpawnFloor = 0
+    this.landmarks = []
+    this.activeTreasure = null
+    this.treasureCollected = new Set()
+    this.treasureOpenAnim = 0
   }
 
   getTheme(floor) {
@@ -53,7 +152,6 @@ export class BackgroundTheme {
       if (floor >= t.floor) theme = t
       else break
     }
-    // Cycle after all themes
     if (floor >= 2100) {
       const idx = Math.floor((floor - 2100) / 100) % THEMES.length
       theme = THEMES[idx]
@@ -61,34 +159,71 @@ export class BackgroundTheme {
     return theme
   }
 
+  getStairTheme(floor) {
+    let theme = STAIR_THEMES[0]
+    for (const t of STAIR_THEMES) {
+      if (floor >= t.floor) theme = t
+      else break
+    }
+    if (floor >= 1600) {
+      const idx = Math.floor((floor - 1600) / 100) % STAIR_THEMES.length
+      theme = STAIR_THEMES[idx]
+    }
+    return theme
+  }
+
+  getTreasureForFloor(floor) {
+    for (const item of COUNTRY_ITEMS) {
+      if (floor === item.floor && !this.treasureCollected.has(item.floor)) {
+        return item
+      }
+    }
+    // Cycle after defined items
+    if (floor % 100 === 0 && floor > 1500 && !this.treasureCollected.has(floor)) {
+      const idx = Math.floor(floor / 100) % COUNTRY_ITEMS.length
+      return { ...COUNTRY_ITEMS[idx], floor }
+    }
+    return null
+  }
+
+  collectTreasure(floor) {
+    this.treasureCollected.add(floor)
+    this.activeTreasure = this.getTreasureForFloor(floor)
+    if (this.activeTreasure) {
+      this.activeTreasure = { ...this.activeTreasure, floor }
+      this.treasureOpenAnim = 1
+    }
+    return this.activeTreasure
+  }
+
   update(floor, w, h, dt) {
-    // Spawn new flying objects every 20 floors
+    // Spawn flying objects every 20 floors
     if (floor - this.lastSpawnFloor >= 20 && floor > 50) {
       this.lastSpawnFloor = floor
       const available = BG_CHARACTERS.filter(c => floor >= c.minFloor)
       if (available.length > 0) {
         const charType = available[Math.floor(Math.random() * available.length)]
         this.flyingObjects.push({
-          ...charType,
-          x: -50,
-          y: Math.random() * h * 0.5 + 20,
+          type: charType.type,
+          x: -50, y: Math.random() * h * 0.5 + 20,
           vx: 0.3 + Math.random() * 0.8,
-          vy: (Math.random() - 0.5) * 0.3,
-          phase: Math.random() * Math.PI * 2,
+          vy: 0, phase: Math.random() * Math.PI * 2,
           scale: 0.8 + Math.random() * 0.6,
         })
       }
     }
 
-    // Update flying objects
     for (let i = this.flyingObjects.length - 1; i >= 0; i--) {
       const obj = this.flyingObjects[i]
       obj.x += obj.vx
       obj.y += Math.sin(obj.phase) * 0.3
       obj.phase += 0.02
-      if (obj.x > w + 100) {
-        this.flyingObjects.splice(i, 1)
-      }
+      if (obj.x > w + 100) this.flyingObjects.splice(i, 1)
+    }
+
+    // Treasure animation
+    if (this.treasureOpenAnim > 0) {
+      this.treasureOpenAnim -= 0.01
     }
   }
 
@@ -106,11 +241,54 @@ export class BackgroundTheme {
     for (let i = 0; i < 30; i++) {
       const sx = (i * 137.5 + globalFrame * 0.02) % w
       const sy = (i * 97.3) % (h * 0.6)
-      const blink = Math.sin(globalFrame * 0.05 + i) > 0.3
-      if (blink) {
+      if (Math.sin(globalFrame * 0.05 + i) > 0.3) {
         ctx.fillRect(sx, sy, (i % 3 === 0) ? 2 : 1, (i % 3 === 0) ? 2 : 1)
       }
     }
+  }
+
+  drawLandmarks(ctx, w, h, cameraY, floor) {
+    for (const lm of LANDMARKS) {
+      if (Math.abs(floor - lm.floor) > 150) continue
+      // Parallax: landmarks scroll slower than stairs
+      const scrollY = h * 0.8 + (cameraY * 0.05) + (lm.floor * 0.5)
+      const lmX = (lm.floor * 37) % (w - 80) + 40 // deterministic X position
+      ctx.save()
+      ctx.translate(lmX, scrollY)
+      ctx.globalAlpha = 0.5
+      ctx.fillStyle = lm.color
+      lm.draw(ctx)
+      ctx.globalAlpha = 1
+      ctx.restore()
+    }
+  }
+
+  drawTreasureNotification(ctx, w, h) {
+    if (this.treasureOpenAnim <= 0 || !this.activeTreasure) return
+
+    const t = this.activeTreasure
+    const alpha = Math.min(this.treasureOpenAnim * 2, 1)
+    ctx.globalAlpha = alpha
+
+    // Background overlay
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'
+    ctx.fillRect(w * 0.1, h * 0.3, w * 0.8, h * 0.15)
+
+    // Treasure chest
+    ctx.fillStyle = '#aa7722'
+    ctx.fillRect(w * 0.42, h * 0.32, w * 0.16, h * 0.05)
+    ctx.fillStyle = '#ffdd44'
+    ctx.fillRect(w * 0.47, h * 0.33, w * 0.06, h * 0.03)
+
+    // Item text
+    ctx.fillStyle = '#ffffff'
+    ctx.font = 'bold 12px monospace'
+    ctx.textAlign = 'center'
+    ctx.fillText(`${t.country}: ${t.item}`, w / 2, h * 0.42)
+    ctx.fillStyle = t.icon
+    ctx.fillRect(w / 2 - 6, h * 0.355, 12, 12)
+
+    ctx.globalAlpha = 1
   }
 
   drawFlyingObjects(ctx, globalFrame) {
@@ -118,280 +296,99 @@ export class BackgroundTheme {
       ctx.save()
       ctx.translate(obj.x, obj.y)
       ctx.scale(obj.scale, obj.scale)
-
-      switch (obj.type) {
-        case 'dragon':
-          this._drawDragon(ctx, globalFrame)
-          break
-        case 'ufo':
-          this._drawUFO(ctx, globalFrame)
-          break
-        case 'astronaut':
-          this._drawAstronaut(ctx, globalFrame)
-          break
-        case 'rocket':
-          this._drawRocket(ctx, globalFrame)
-          break
-        case 'robot':
-          this._drawRobot(ctx, globalFrame)
-          break
-        case 'bird':
-          this._drawBird(ctx, globalFrame)
-          break
-        case 'balloon':
-          this._drawBalloon(ctx, globalFrame)
-          break
-        case 'witch':
-          this._drawWitch(ctx, globalFrame)
-          break
-        case 'angel':
-          this._drawAngel(ctx, globalFrame)
-          break
-        case 'phoenix':
-          this._drawPhoenix(ctx, globalFrame)
-          break
-        case 'satellite':
-          this._drawSatellite(ctx, globalFrame)
-          break
-        case 'comet':
-          this._drawComet(ctx, globalFrame)
-          break
-      }
+      ctx.globalAlpha = 0.7
+      this._drawChar(ctx, obj.type, globalFrame)
+      ctx.globalAlpha = 1
       ctx.restore()
     }
   }
 
-  _drawDragon(ctx, f) {
-    // Body
-    ctx.fillStyle = '#44cc44'
-    ctx.fillRect(-15, -5, 30, 10)
-    // Head
-    ctx.fillStyle = '#33aa33'
-    ctx.fillRect(15, -8, 10, 12)
-    // Eye
-    ctx.fillStyle = '#ff0000'
-    ctx.fillRect(20, -5, 3, 3)
-    // Wings
-    const wingY = Math.sin(f * 0.15) * 5
-    ctx.fillStyle = '#228822'
-    ctx.fillRect(-5, -12 + wingY, 15, 5)
-    ctx.fillRect(-5, 7 - wingY, 15, 5)
-    // Tail
-    ctx.fillStyle = '#44cc44'
-    ctx.fillRect(-25, -3, 12, 6)
-    // Fire
-    if (f % 30 < 15) {
-      ctx.fillStyle = '#ff6600'
-      ctx.fillRect(25, -4, 8, 3)
-      ctx.fillStyle = '#ffcc00'
-      ctx.fillRect(25, -1, 6, 2)
+  _drawChar(ctx, type, f) {
+    switch (type) {
+      case 'dragon': {
+        ctx.fillStyle = '#44cc44'
+        ctx.fillRect(-15, -5, 30, 10)
+        ctx.fillStyle = '#33aa33'; ctx.fillRect(15, -8, 10, 12)
+        ctx.fillStyle = '#ff0000'; ctx.fillRect(20, -5, 3, 3)
+        const wy = Math.sin(f * 0.15) * 5
+        ctx.fillStyle = '#228822'
+        ctx.fillRect(-5, -12 + wy, 15, 5); ctx.fillRect(-5, 7 - wy, 15, 5)
+        if (f % 30 < 15) { ctx.fillStyle = '#ff6600'; ctx.fillRect(25, -4, 8, 3) }
+        break
+      }
+      case 'ufo': {
+        ctx.fillStyle = '#aaddff'; ctx.fillRect(-6, -8, 12, 6)
+        ctx.fillStyle = '#888899'; ctx.fillRect(-15, -3, 30, 6)
+        ctx.fillStyle = Math.sin(f * 0.1) > 0 ? '#ff0000' : '#00ff00'
+        ctx.fillRect(-12, 0, 3, 3); ctx.fillRect(9, 0, 3, 3)
+        break
+      }
+      case 'astronaut': {
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(-5, -10, 10, 10)
+        ctx.fillStyle = '#4488ff'; ctx.fillRect(-3, -7, 6, 4)
+        ctx.fillStyle = '#dddddd'; ctx.fillRect(-6, 0, 12, 10)
+        break
+      }
+      case 'rocket': {
+        ctx.fillStyle = '#dddddd'; ctx.fillRect(-5, -10, 10, 20)
+        ctx.fillStyle = '#ff4444'; ctx.fillRect(-3, -14, 6, 5)
+        ctx.fillStyle = '#ffaa00'; ctx.fillRect(-4, 10, 8, 4 + Math.sin(f * 0.2) * 3)
+        break
+      }
+      case 'robot': {
+        ctx.fillStyle = '#888899'; ctx.fillRect(-6, -11, 12, 8)
+        ctx.fillStyle = '#6666aa'; ctx.fillRect(-7, -3, 14, 12)
+        ctx.fillStyle = Math.sin(f * 0.08) > 0 ? '#ff0000' : '#00ff00'
+        ctx.fillRect(-4, -9, 3, 3); ctx.fillRect(1, -9, 3, 3)
+        break
+      }
+      case 'bird': {
+        const wy2 = Math.sin(f * 0.2) * 5
+        ctx.fillStyle = '#ffaa44'; ctx.fillRect(-5, -2, 10, 5)
+        ctx.fillStyle = '#cc7722'
+        ctx.fillRect(-8, -5 + wy2, 8, 3); ctx.fillRect(0, -5 - wy2, 8, 3)
+        break
+      }
+      case 'balloon': {
+        ctx.fillStyle = '#ff4488'; ctx.fillRect(-6, -15, 12, 14)
+        ctx.fillStyle = '#888888'; ctx.fillRect(0, -1, 1, 10)
+        ctx.fillStyle = '#8b5e3c'; ctx.fillRect(-3, 9, 6, 4)
+        break
+      }
+      case 'witch': {
+        ctx.fillStyle = '#8b5e3c'; ctx.fillRect(-15, 3, 30, 3)
+        ctx.fillStyle = '#2a1a4e'; ctx.fillRect(-4, -8, 8, 12)
+        ctx.fillRect(-6, -14, 12, 6); ctx.fillRect(-3, -18, 6, 5)
+        break
+      }
+      case 'angel': {
+        const ws = Math.sin(f * 0.08) * 3
+        ctx.fillStyle = '#ffffdd'
+        ctx.fillRect(-14 - ws, -8, 10, 12); ctx.fillRect(4 + ws, -8, 10, 12)
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(-4, -6, 8, 14)
+        ctx.fillStyle = '#ffdd44'; ctx.fillRect(-4, -15, 8, 2)
+        break
+      }
+      case 'phoenix': {
+        ctx.fillStyle = '#ff6600'; ctx.fillRect(-8, -4, 16, 8)
+        const wy3 = Math.sin(f * 0.12) * 6
+        ctx.fillStyle = '#ffcc00'
+        ctx.fillRect(-15, -10 + wy3, 12, 6); ctx.fillRect(3, -10 - wy3, 12, 6)
+        ctx.fillStyle = '#ff4400'; ctx.fillRect(-18, -2, 10, 4)
+        break
+      }
+      case 'satellite': {
+        ctx.fillStyle = '#aabbcc'; ctx.fillRect(-4, -4, 8, 8)
+        ctx.fillStyle = '#3355aa'; ctx.fillRect(-16, -3, 12, 6); ctx.fillRect(4, -3, 12, 6)
+        break
+      }
+      case 'comet': {
+        ctx.globalAlpha = 0.4; ctx.fillStyle = '#aaddff'; ctx.fillRect(-30, -2, 28, 4)
+        ctx.globalAlpha = 0.7; ctx.fillStyle = '#ffffff'; ctx.fillRect(-3, -3, 6, 6)
+        break
+      }
     }
-  }
-
-  _drawUFO(ctx, f) {
-    // Dome
-    ctx.fillStyle = '#aaddff'
-    ctx.fillRect(-6, -8, 12, 6)
-    // Body
-    ctx.fillStyle = '#888899'
-    ctx.fillRect(-15, -3, 30, 6)
-    // Lights
-    const blink = Math.sin(f * 0.1)
-    ctx.fillStyle = blink > 0 ? '#ff0000' : '#00ff00'
-    ctx.fillRect(-12, 0, 3, 3)
-    ctx.fillRect(9, 0, 3, 3)
-    // Beam
-    if (f % 60 < 30) {
-      ctx.globalAlpha = 0.2
-      ctx.fillStyle = '#aaffaa'
-      ctx.fillRect(-8, 3, 16, 20)
-      ctx.globalAlpha = 1
-    }
-  }
-
-  _drawAstronaut(ctx, f) {
-    // Helmet
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(-5, -10, 10, 10)
-    // Visor
-    ctx.fillStyle = '#4488ff'
-    ctx.fillRect(-3, -7, 6, 4)
-    // Body
-    ctx.fillStyle = '#dddddd'
-    ctx.fillRect(-6, 0, 12, 10)
-    // Backpack
-    ctx.fillStyle = '#888888'
-    ctx.fillRect(-8, 1, 3, 8)
-    // Legs float
-    const legAngle = Math.sin(f * 0.05) * 3
-    ctx.fillStyle = '#dddddd'
-    ctx.fillRect(-4, 10, 3, 6 + legAngle)
-    ctx.fillRect(1, 10, 3, 6 - legAngle)
-  }
-
-  _drawRocket(ctx, f) {
-    // Body
-    ctx.fillStyle = '#dddddd'
-    ctx.fillRect(-5, -10, 10, 20)
-    // Nose
-    ctx.fillStyle = '#ff4444'
-    ctx.fillRect(-3, -14, 6, 5)
-    // Window
-    ctx.fillStyle = '#4488ff'
-    ctx.fillRect(-2, -5, 4, 4)
-    // Fins
-    ctx.fillStyle = '#ff4444'
-    ctx.fillRect(-8, 6, 4, 6)
-    ctx.fillRect(4, 6, 4, 6)
-    // Flame
-    ctx.fillStyle = '#ffaa00'
-    ctx.fillRect(-4, 10, 8, 4 + Math.sin(f * 0.2) * 3)
-    ctx.fillStyle = '#ff4400'
-    ctx.fillRect(-2, 14, 4, 3 + Math.sin(f * 0.3) * 2)
-  }
-
-  _drawRobot(ctx, f) {
-    // Head
-    ctx.fillStyle = '#888899'
-    ctx.fillRect(-6, -11, 12, 8)
-    // Eyes
-    const blink = Math.sin(f * 0.08)
-    ctx.fillStyle = blink > 0 ? '#ff0000' : '#00ff00'
-    ctx.fillRect(-4, -9, 3, 3)
-    ctx.fillRect(1, -9, 3, 3)
-    // Antenna
-    ctx.fillStyle = '#ffdd44'
-    ctx.fillRect(-1, -14, 2, 4)
-    ctx.fillRect(-2, -15, 4, 2)
-    // Body
-    ctx.fillStyle = '#6666aa'
-    ctx.fillRect(-7, -3, 14, 12)
-    // Arms
-    ctx.fillStyle = '#888899'
-    ctx.fillRect(-10, -2, 4, 8)
-    ctx.fillRect(6, -2, 4, 8)
-    // Legs
-    ctx.fillRect(-5, 9, 4, 5)
-    ctx.fillRect(1, 9, 4, 5)
-  }
-
-  _drawBird(ctx, f) {
-    const wingY = Math.sin(f * 0.2) * 5
-    ctx.fillStyle = '#ffaa44'
-    ctx.fillRect(-5, -2, 10, 5)
-    // Wings
-    ctx.fillStyle = '#cc7722'
-    ctx.fillRect(-8, -5 + wingY, 8, 3)
-    ctx.fillRect(0, -5 - wingY, 8, 3)
-    // Beak
-    ctx.fillStyle = '#ff6600'
-    ctx.fillRect(5, 0, 4, 2)
-    // Eye
-    ctx.fillStyle = '#000000'
-    ctx.fillRect(3, -1, 2, 2)
-  }
-
-  _drawBalloon(ctx) {
-    // Balloon
-    ctx.fillStyle = '#ff4488'
-    ctx.fillRect(-6, -15, 12, 14)
-    // Highlight
-    ctx.fillStyle = '#ff88aa'
-    ctx.fillRect(-3, -13, 4, 6)
-    // String
-    ctx.fillStyle = '#888888'
-    ctx.fillRect(0, -1, 1, 10)
-    // Basket
-    ctx.fillStyle = '#8b5e3c'
-    ctx.fillRect(-3, 9, 6, 4)
-  }
-
-  _drawWitch(ctx, f) {
-    // Broom
-    ctx.fillStyle = '#8b5e3c'
-    ctx.fillRect(-15, 3, 30, 3)
-    ctx.fillStyle = '#cc8833'
-    ctx.fillRect(-18, 0, 6, 8)
-    // Body
-    ctx.fillStyle = '#2a1a4e'
-    ctx.fillRect(-4, -8, 8, 12)
-    // Hat
-    ctx.fillStyle = '#2a1a4e'
-    ctx.fillRect(-6, -14, 12, 6)
-    ctx.fillRect(-3, -18, 6, 5)
-    // Face
-    ctx.fillStyle = '#88cc88'
-    ctx.fillRect(-3, -10, 6, 4)
-  }
-
-  _drawAngel(ctx, f) {
-    // Wings
-    const wingSpread = Math.sin(f * 0.08) * 3
-    ctx.fillStyle = '#ffffdd'
-    ctx.fillRect(-14 - wingSpread, -8, 10, 12)
-    ctx.fillRect(4 + wingSpread, -8, 10, 12)
-    // Body
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(-4, -6, 8, 14)
-    // Head
-    ctx.fillStyle = '#ffddbb'
-    ctx.fillRect(-3, -12, 6, 6)
-    // Halo
-    ctx.fillStyle = '#ffdd44'
-    ctx.fillRect(-4, -15, 8, 2)
-  }
-
-  _drawPhoenix(ctx, f) {
-    // Body
-    ctx.fillStyle = '#ff6600'
-    ctx.fillRect(-8, -4, 16, 8)
-    // Wings
-    const wingY = Math.sin(f * 0.12) * 6
-    ctx.fillStyle = '#ffcc00'
-    ctx.fillRect(-15, -10 + wingY, 12, 6)
-    ctx.fillRect(3, -10 - wingY, 12, 6)
-    // Tail flames
-    ctx.fillStyle = '#ff4400'
-    ctx.fillRect(-18, -2, 10, 4)
-    ctx.fillStyle = '#ffaa00'
-    ctx.fillRect(-22, -1, 6, 2)
-    // Head
-    ctx.fillStyle = '#ff8800'
-    ctx.fillRect(8, -6, 8, 8)
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(12, -4, 3, 2)
-  }
-
-  _drawSatellite(ctx, f) {
-    // Body
-    ctx.fillStyle = '#aabbcc'
-    ctx.fillRect(-4, -4, 8, 8)
-    // Solar panels
-    ctx.fillStyle = '#3355aa'
-    ctx.fillRect(-16, -3, 12, 6)
-    ctx.fillRect(4, -3, 12, 6)
-    // Antenna
-    ctx.fillStyle = '#cccccc'
-    ctx.fillRect(-1, -7, 2, 4)
-    // Blink
-    if (Math.sin(f * 0.1) > 0.5) {
-      ctx.fillStyle = '#ff0000'
-      ctx.fillRect(-1, -8, 2, 2)
-    }
-  }
-
-  _drawComet(ctx, f) {
-    // Tail
-    ctx.globalAlpha = 0.4
-    ctx.fillStyle = '#aaddff'
-    ctx.fillRect(-30, -2, 28, 4)
-    ctx.globalAlpha = 0.2
-    ctx.fillRect(-50, -1, 22, 2)
-    ctx.globalAlpha = 1
-    // Head
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(-3, -3, 6, 6)
-    ctx.fillStyle = '#aaddff'
-    ctx.fillRect(-2, -2, 4, 4)
   }
 }
+
+export { STAIR_THEMES, COUNTRY_ITEMS, LANDMARKS }
