@@ -248,18 +248,63 @@ export class BackgroundTheme {
   }
 
   drawLandmarks(ctx, w, h, cameraY, floor) {
+    // Find the closest landmark to display (within 200 floors)
+    let activeLM = null
     for (const lm of LANDMARKS) {
-      if (Math.abs(floor - lm.floor) > 150) continue
-      // Parallax: landmarks scroll slower than stairs
-      const scrollY = h * 0.8 + (cameraY * 0.05) + (lm.floor * 0.5)
-      const lmX = (lm.floor * 37) % (w - 80) + 40 // deterministic X position
-      ctx.save()
-      ctx.translate(lmX, scrollY)
-      ctx.globalAlpha = 0.5
-      ctx.fillStyle = lm.color
-      lm.draw(ctx)
+      if (floor >= lm.floor - 50 && floor < lm.floor + 200) {
+        activeLM = lm
+      }
+    }
+    // Cycle landmarks after defined ones
+    if (!activeLM && floor > 1000) {
+      const idx = Math.floor(floor / 100) % LANDMARKS.length
+      const lm = LANDMARKS[idx]
+      if (floor % 100 < 200) activeLM = lm
+    }
+    if (!activeLM) return
+
+    // Parallax scroll: landmark slowly moves down as player climbs
+    const progress = (floor - activeLM.floor + 50) / 250 // 0 to 1
+    const slideY = progress * h * 0.6 // slides from top to below screen
+
+    // Draw landmark on LEFT side, large scale, like the buildings
+    const scale = 3.5
+    const baseX = w * 0.18
+    const baseY = h * 0.75 + slideY
+
+    ctx.save()
+    ctx.translate(baseX, baseY)
+    ctx.scale(scale, scale)
+    ctx.globalAlpha = 0.6
+    ctx.fillStyle = activeLM.color
+    activeLM.draw(ctx)
+    ctx.globalAlpha = 1
+    ctx.restore()
+
+    // Also draw a mirrored/smaller one on RIGHT side
+    const scale2 = 2.5
+    const baseX2 = w * 0.85
+    const baseY2 = h * 0.8 + slideY * 0.8
+
+    ctx.save()
+    ctx.translate(baseX2, baseY2)
+    ctx.scale(scale2, scale2)
+    ctx.globalAlpha = 0.4
+    ctx.fillStyle = activeLM.color
+    activeLM.draw(ctx)
+    ctx.globalAlpha = 1
+    ctx.restore()
+
+    // Country name label at bottom
+    if (progress > 0 && progress < 0.8) {
+      ctx.globalAlpha = Math.min(1, (0.8 - progress) * 3)
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'
+      ctx.fillRect(0, h - 30, w, 30)
+      ctx.fillStyle = activeLM.color
+      ctx.font = 'bold 12px monospace'
+      ctx.textAlign = 'center'
+      ctx.fillText(activeLM.name, w / 2, h - 10)
       ctx.globalAlpha = 1
-      ctx.restore()
     }
   }
 
