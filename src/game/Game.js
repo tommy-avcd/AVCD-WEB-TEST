@@ -370,11 +370,8 @@ export class Game {
     ctx.fillRect(0, 0, w, h)
     ctx.globalAlpha = 1
 
-    // Draw buildings (parallax)
-    this._drawBuildings(ctx, w, h)
-
-    // Draw landmarks (parallax, behind stairs)
-    this.bgTheme.drawLandmarks(ctx, w, h, this.cameraY, this.currentStair)
+    // Draw landmark buildings (replaces generic buildings)
+    this.bgTheme.drawLandmarkBuildings(ctx, w, h, this.currentStair, this.globalFrame)
 
     // Draw flying background characters
     this.bgTheme.drawFlyingObjects(ctx, this.globalFrame)
@@ -414,26 +411,7 @@ export class Game {
     }
   }
 
-  _drawBuildings(ctx, w, h) {
-    const parallax = this.cameraY * 0.1
-    for (const b of this.buildings) {
-      ctx.fillStyle = b.color
-      const by = h - b.height + parallax % 50
-      ctx.fillRect(b.x, by, b.width, b.height)
-      if (b.windows) {
-        ctx.fillStyle = '#ffdd44'
-        for (let wy = by + 10; wy < h; wy += 16) {
-          for (let wx = b.x + 6; wx < b.x + b.width - 6; wx += 12) {
-            if (Math.sin(wx * 7 + wy * 3 + this.globalFrame * 0.01) > 0.3) {
-              ctx.globalAlpha = 0.6 + Math.sin(this.globalFrame * 0.03 + wx) * 0.3
-              ctx.fillRect(wx, wy, 5, 6)
-            }
-          }
-        }
-        ctx.globalAlpha = 1
-      }
-    }
-  }
+  // Buildings are now replaced by landmark system in BackgroundTheme
 
   _drawStairs(ctx, w, h) {
     const startIdx = Math.max(0, this.currentStair - VISIBLE_STAIRS_BEHIND)

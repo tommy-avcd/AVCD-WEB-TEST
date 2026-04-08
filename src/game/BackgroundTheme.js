@@ -247,63 +247,99 @@ export class BackgroundTheme {
     }
   }
 
-  drawLandmarks(ctx, w, h, cameraY, floor) {
-    // Find the closest landmark to display (within 200 floors)
-    let activeLM = null
-    for (const lm of LANDMARKS) {
-      if (floor >= lm.floor - 50 && floor < lm.floor + 200) {
-        activeLM = lm
+  // Get which landmark to show based on floor (cycles through all)
+  _getLandmark(floor) {
+    const tier = Math.floor(floor / 100)
+    const idx = tier % LANDMARKS.length
+    return LANDMARKS[idx]
+  }
+
+  // Replace generic buildings with country landmark buildings
+  drawLandmarkBuildings(ctx, w, h, floor, globalFrame) {
+    const lm = this._getLandmark(floor)
+
+    // How far into this 100-floor segment are we? (0 to 99)
+    const inSegment = floor % 100
+    // progress 0 = landmark just appeared at top, 1 = fully scrolled down
+    const progress = inSegment / 99
+
+    // The landmark starts showing from the top and slides down as you climb
+    // At floor X00: top of building peeks above bottom
+    // At floor X99: building has fully scrolled down past screen
+
+    // Main landmark - LEFT side, large
+    const scale1 = 4
+    const lmX1 = w * 0.15
+    // Starts at bottom of screen, slides down further
+    const lmY1 = h * 0.55 + progress * h * 0.5
+
+    ctx.save()
+    ctx.translate(lmX1, lmY1)
+    ctx.scale(scale1, scale1)
+    ctx.globalAlpha = 0.7
+    ctx.fillStyle = lm.color
+    lm.draw(ctx)
+    ctx.globalAlpha = 1
+    ctx.restore()
+
+    // Second landmark - RIGHT side, smaller (depth illusion)
+    const scale2 = 2.8
+    const lmX2 = w * 0.82
+    const lmY2 = h * 0.6 + progress * h * 0.45
+
+    ctx.save()
+    ctx.translate(lmX2, lmY2)
+    ctx.scale(scale2, scale2)
+    ctx.globalAlpha = 0.45
+    ctx.fillStyle = lm.color
+    lm.draw(ctx)
+    ctx.globalAlpha = 1
+    ctx.restore()
+
+    // Third small one in far back (more depth)
+    const scale3 = 1.5
+    const lmX3 = w * 0.5
+    const lmY3 = h * 0.7 + progress * h * 0.3
+
+    ctx.save()
+    ctx.translate(lmX3, lmY3)
+    ctx.scale(scale3, scale3)
+    ctx.globalAlpha = 0.25
+    ctx.fillStyle = lm.color
+    lm.draw(ctx)
+    ctx.globalAlpha = 1
+    ctx.restore()
+
+    // Window lights on the landmarks (like the original buildings)
+    ctx.fillStyle = '#ffdd44'
+    const windowAreas = [
+      { x: lmX1 - 40, y: lmY1 - 80, w: 80, h: 120, alpha: 0.5 },
+      { x: lmX2 - 30, y: lmY2 - 50, w: 60, h: 80, alpha: 0.3 },
+    ]
+    for (const area of windowAreas) {
+      for (let wy = area.y; wy < area.y + area.h; wy += 14) {
+        for (let wx = area.x; wx < area.x + area.w; wx += 10) {
+          if (Math.sin(wx * 7 + wy * 3 + globalFrame * 0.01) > 0.5) {
+            ctx.globalAlpha = area.alpha * (0.5 + Math.sin(globalFrame * 0.03 + wx) * 0.3)
+            ctx.fillRect(wx, wy, 4, 5)
+          }
+        }
       }
     }
-    // Cycle landmarks after defined ones
-    if (!activeLM && floor > 1000) {
-      const idx = Math.floor(floor / 100) % LANDMARKS.length
-      const lm = LANDMARKS[idx]
-      if (floor % 100 < 200) activeLM = lm
-    }
-    if (!activeLM) return
-
-    // Parallax scroll: landmark slowly moves down as player climbs
-    const progress = (floor - activeLM.floor + 50) / 250 // 0 to 1
-    const slideY = progress * h * 0.6 // slides from top to below screen
-
-    // Draw landmark on LEFT side, large scale, like the buildings
-    const scale = 3.5
-    const baseX = w * 0.18
-    const baseY = h * 0.75 + slideY
-
-    ctx.save()
-    ctx.translate(baseX, baseY)
-    ctx.scale(scale, scale)
-    ctx.globalAlpha = 0.6
-    ctx.fillStyle = activeLM.color
-    activeLM.draw(ctx)
     ctx.globalAlpha = 1
-    ctx.restore()
 
-    // Also draw a mirrored/smaller one on RIGHT side
-    const scale2 = 2.5
-    const baseX2 = w * 0.85
-    const baseY2 = h * 0.8 + slideY * 0.8
-
-    ctx.save()
-    ctx.translate(baseX2, baseY2)
-    ctx.scale(scale2, scale2)
-    ctx.globalAlpha = 0.4
-    ctx.fillStyle = activeLM.color
-    activeLM.draw(ctx)
-    ctx.globalAlpha = 1
-    ctx.restore()
-
-    // Country name label at bottom
-    if (progress > 0 && progress < 0.8) {
-      ctx.globalAlpha = Math.min(1, (0.8 - progress) * 3)
-      ctx.fillStyle = 'rgba(0,0,0,0.5)'
-      ctx.fillRect(0, h - 30, w, 30)
-      ctx.fillStyle = activeLM.color
+    // Country name at bottom
+    const fadeIn = Math.min(1, inSegment / 10) // fade in over first 10 stairs
+    const fadeOut = Math.min(1, (99 - inSegment) / 10) // fade out over last 10
+    const alpha = fadeIn * fadeOut
+    if (alpha > 0.01) {
+      ctx.globalAlpha = alpha * 0.8
+      ctx.fillStyle = 'rgba(0,0,0,0.6)'
+      ctx.fillRect(0, h - 32, w, 32)
+      ctx.fillStyle = lm.color
       ctx.font = 'bold 12px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText(activeLM.name, w / 2, h - 10)
+      ctx.fillText(lm.name, w / 2, h - 11)
       ctx.globalAlpha = 1
     }
   }
