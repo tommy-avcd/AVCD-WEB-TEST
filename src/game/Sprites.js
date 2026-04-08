@@ -1,5 +1,4 @@
 // 16-bit retro pixel art sprite definitions
-// Each sprite is defined as a 2D pixel array with color indices
 
 const PALETTE = {
   transparent: 'transparent',
@@ -28,8 +27,9 @@ const PALETTE = {
   stairEdge: '#5a4030',
 }
 
-// Character sprite - 16x24 pixel character
-// Idle frame 1
+// === CHARACTER SPRITES ===
+
+// Idle frame 1 - standing, hands down
 const CHAR_IDLE_1 = [
   '................',
   '....rrrrrr......',
@@ -53,7 +53,7 @@ const CHAR_IDLE_1 = [
   '................',
 ]
 
-// Idle frame 2 (breathing - slightly raised)
+// Idle frame 2 - breathing up
 const CHAR_IDLE_2 = [
   '....rrrrrr......',
   '...rRRRRRRr.....',
@@ -77,7 +77,31 @@ const CHAR_IDLE_2 = [
   '................',
 ]
 
-// Running frame 1
+// Idle frame 3 - panting, mouth open
+const CHAR_IDLE_3 = [
+  '................',
+  '....rrrrrr......',
+  '...rRRRRRRr.....',
+  '...rRRRRRRr.....',
+  '...rrrrrrrrr....',
+  '....SSSSSS......',
+  '....SEESSE......',
+  '....SSSSSS......',
+  '.....SOOS.......',
+  '....bbbbbb......',
+  '...bBBBBBBb.....',
+  '...bBBBBBBb.....',
+  '...bBSSSSBb.....',
+  '....SSSSSS......',
+  '....SS..SS......',
+  '....SS..SS......',
+  '....DD..DD......',
+  '....dd..dd......',
+  '...ddd..ddd.....',
+  '................',
+]
+
+// Running frame 1 - right leg forward
 const CHAR_RUN_1 = [
   '................',
   '....rrrrrr......',
@@ -101,7 +125,7 @@ const CHAR_RUN_1 = [
   '................',
 ]
 
-// Running frame 2
+// Running frame 2 - mid stride
 const CHAR_RUN_2 = [
   '................',
   '....rrrrrr......',
@@ -121,6 +145,54 @@ const CHAR_RUN_2 = [
   '...DD..DD.......',
   '..dd....dd......',
   '.ddd....ddd.....',
+  '................',
+  '................',
+]
+
+// Running frame 3 - left leg forward
+const CHAR_RUN_3 = [
+  '................',
+  '....rrrrrr......',
+  '...rRRRRRRr.....',
+  '...rRRRRRRr.....',
+  '...rrrrrrrrr....',
+  '....SSSSSS......',
+  '....SEESSE......',
+  '....SSSSSS......',
+  '.....SMMS.......',
+  '.....bbbbbb.....',
+  '....bBBBBBBb....',
+  '...bbBBBBBBbb...',
+  '...bBBSSSSBBb...',
+  '....SSSSSSSS....',
+  '.....SS..SS.....',
+  '....SS....SS....',
+  '...DD......DD...',
+  '...dd......dd...',
+  '..ddd......ddd..',
+  '................',
+]
+
+// Running frame 4 - airborne
+const CHAR_RUN_4 = [
+  '....rrrrrr......',
+  '...rRRRRRRr.....',
+  '...rRRRRRRr.....',
+  '...rrrrrrrrr....',
+  '....SSSSSS......',
+  '....SEESSE......',
+  '....SSSSSS......',
+  '.....SMMS.......',
+  '..bbbbbbbb......',
+  '..bBBBBBBBb.....',
+  '..bBBBBBBBb.bb..',
+  '..bBBSSSSBbbBb..',
+  '...SSSSSSSS.b...',
+  '....SS.........',
+  '...SS...........',
+  '..DD....DD......',
+  '..dd.....dd.....',
+  '.ddd......ddd...',
   '................',
   '................',
 ]
@@ -155,9 +227,9 @@ const SPRITE_MAP = {
   'R': PALETTE.red,
   'S': PALETTE.skin,
   's': PALETTE.skinDark,
-  'E': PALETTE.black,  // eyes
-  'M': PALETTE.darkRed, // mouth
-  'O': PALETTE.white,   // surprised eyes
+  'E': PALETTE.black,
+  'M': PALETTE.darkRed,
+  'O': PALETTE.white,
   'b': PALETTE.darkBlue,
   'B': PALETTE.blue,
   'D': PALETTE.darkBrown,
@@ -171,8 +243,8 @@ function parseSprite(data) {
 }
 
 export const SPRITES = {
-  charIdle: [parseSprite(CHAR_IDLE_1), parseSprite(CHAR_IDLE_2)],
-  charRun: [parseSprite(CHAR_RUN_1), parseSprite(CHAR_RUN_2)],
+  charIdle: [parseSprite(CHAR_IDLE_1), parseSprite(CHAR_IDLE_2), parseSprite(CHAR_IDLE_3), parseSprite(CHAR_IDLE_2)],
+  charRun: [parseSprite(CHAR_RUN_1), parseSprite(CHAR_RUN_2), parseSprite(CHAR_RUN_3), parseSprite(CHAR_RUN_4)],
   charFall: parseSprite(CHAR_FALL),
 }
 
@@ -202,31 +274,17 @@ export function drawSprite(ctx, sprite, x, y, pixelSize, flip = false) {
 
 // Draw a stair block
 export function drawStair(ctx, x, y, width, height) {
-  // Main body
   ctx.fillStyle = PALETTE.stairLight
   ctx.fillRect(x, y, width, height)
-
-  // Top highlight
   ctx.fillStyle = PALETTE.white
   ctx.fillRect(x, y, width, 2)
-
-  // Mid tone
   ctx.fillStyle = PALETTE.stairMid
   ctx.fillRect(x, y + height * 0.4, width, height * 0.3)
-
-  // Bottom shadow
   ctx.fillStyle = PALETTE.stairDark
   ctx.fillRect(x, y + height - 4, width, 4)
-
-  // Left edge
   ctx.fillStyle = PALETTE.stairEdge
   ctx.fillRect(x, y, 2, height)
-
-  // Right edge
-  ctx.fillStyle = PALETTE.stairEdge
   ctx.fillRect(x + width - 2, y, 2, height)
-
-  // Pixel detail - brick lines
   ctx.fillStyle = PALETTE.stairDark
   for (let i = 0; i < Math.floor(width / 16); i++) {
     ctx.fillRect(x + 8 + i * 16, y + 6, 1, height - 12)
@@ -240,20 +298,12 @@ export function drawCoin(ctx, x, y, size, frame) {
   const w = size * squeeze
   const cx = x + size / 2
   const cy = y + size / 2
-
-  // Coin body
   ctx.fillStyle = PALETTE.gold
   ctx.fillRect(cx - w / 2, cy - size / 2, w, size)
-
-  // Highlight
   ctx.fillStyle = PALETTE.yellow
   ctx.fillRect(cx - w / 4, cy - size / 3, w / 3, size * 0.3)
-
-  // Shadow
   ctx.fillStyle = PALETTE.orange
   ctx.fillRect(cx - w / 2, cy + size / 4, w, size / 4)
-
-  // Dollar sign
   if (squeeze > 0.6) {
     ctx.fillStyle = PALETTE.darkBrown
     ctx.fillRect(cx - 1, cy - 2, 2, 5)

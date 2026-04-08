@@ -1,21 +1,22 @@
 import { SPRITES, drawSprite, drawStair, drawCoin, PALETTE } from './Sprites.js'
 import { ParticleSystem } from './Particles.js'
 import { soundManager } from './SoundManager.js'
+import { CrowdSystem } from './CrowdSystem.js'
+import { BackgroundTheme } from './BackgroundTheme.js'
 
 const STAIR_WIDTH = 64
 const STAIR_HEIGHT = 16
-const STAIR_GAP_X = 48  // horizontal offset between stairs
-const STAIR_GAP_Y = 40  // vertical offset between stairs
+const STAIR_GAP_X = 48
+const STAIR_GAP_Y = 40
 const CHAR_PIXEL_SIZE = 2.5
-const VISIBLE_STAIRS = 14
-const COIN_CHANCE = 0.2 // 20% chance for coin
-const COMBO_WINDOW = 600 // ms for combo
+const VISIBLE_STAIRS_AHEAD = 14
+const VISIBLE_STAIRS_BEHIND = 20 // keep 20 past stairs visible
+const COIN_CHANCE = 0.2
+const COMBO_WINDOW = 600
 
-// Timer settings
-const BASE_TIME_LIMIT = 7000000000 // ms base time per step
-const TIME_REDUCTION_PER_TIER = 200000000 // ms reduction every 50 stairs
-const TIER_SIZE = 50
-const MIN_TIME_LIMIT = 1200000000 // minimum time limit
+// Speed: animation frame speed increases 1.1x every 10 floors
+const SPEED_TIER = 10
+const SPEED_MULTIPLIER = 1.1
 
 export class Game {
   constructor(canvas, onUpdate) {
@@ -23,19 +24,16 @@ export class Game {
     this.ctx = canvas.getContext('2d')
     this.onUpdate = onUpdate
     this.particles = new ParticleSystem()
-    this.bgFireworks = new ParticleSystem() // screen-space fireworks behind everything
+    this.bgFireworks = new ParticleSystem()
+    this.crowd = new CrowdSystem()
+    this.bgTheme = new BackgroundTheme()
 
     this.reset()
     this.animFrame = 0
     this.globalFrame = 0
     this.lastTime = 0
     this.running = false
-    this.gameState = 'menu' // menu, playing, gameover
-
-    // Screen shake
-    this.shakeX = 0
-    this.shakeY = 0
-    this.shakeIntensity = 0
+    this.gameState = 'menu'
 
     // Camera
     this.cameraY = 0
@@ -43,9 +41,6 @@ export class Game {
 
     // Background buildings
     this.buildings = this._generateBuildings()
-
-    // Pre-render background
-    this.bgFrame = 0
   }
 
   reset() {
@@ -54,24 +49,23 @@ export class Game {
     this.score = 0
     this.coins = 0
     this.facingRight = true
-    this.charState = 'idle' // idle, running, falling
+    this.charState = 'idle'
     this.runAnimTimer = 0
-
-    // Timer
-    this.timeRemaining = BASE_TIME_LIMIT
-    this.timeLimit = BASE_TIME_LIMIT
 
     // Combo
     this.combo = 0
     this.lastStepTime = 0
     this.fallStartFrame = 0
 
+    // Speed system
+    this.speedMultiplier = 1
+
     // High score
     this.highScore = parseInt(localStorage.getItem('infiniteStairs_highScore') || '0')
     this.highCoins = parseInt(localStorage.getItem('infiniteStairs_highCoins') || '0')
 
     // Generate initial stairs
-    this._generateStairs(VISIBLE_STAIRS + 10)
+    this._generateStairs(VISIBLE_STAIRS_AHEAD + VISIBLE_STAIRS_BEHIND)
 
     // Position character
     this.charX = 0
@@ -100,40 +94,28 @@ export class Game {
 
   _generateStairs(count) {
     const startIdx = this.stairs.length
-    // Screen boundary: stairs are drawn at camOffsetX + stair.x
-    // camOffsetX = canvas.width / 2, so stair.x range should stay within [-width/2 + margin, width/2 - margin]
     const halfW = (this.canvas.width || 400) / 2
-    const margin = STAIR_WIDTH + 20 // keep stair fully visible
+    const margin = STAIR_WIDTH + 20
     const maxX = halfW - margin
     const minX = -halfW + margin
 
     for (let i = 0; i < count; i++) {
       const idx = startIdx + i
       if (idx === 0) {
-        // First stair - center
         this.stairs.push({
-          x: 0,
-          y: 0,
+          x: 0, y: 0,
           direction: Math.random() > 0.5 ? 'right' : 'left',
-          hasCoin: false,
-          coinCollected: false
+          hasCoin: false, coinCollected: false
         })
       } else {
         const prev = this.stairs[idx - 1]
         let goRight = Math.random() > 0.5
         const nextX = prev.x + (goRight ? STAIR_GAP_X : -STAIR_GAP_X)
-
-        // Force direction if next stair would go off screen
-        if (nextX + STAIR_WIDTH > maxX) {
-          goRight = false
-        } else if (nextX < minX) {
-          goRight = true
-        }
-
+        if (nextX + STAIR_WIDTH > maxX) goRight = false
+        else if (nextX < minX) goRight = true
         const x = prev.x + (goRight ? STAIR_GAP_X : -STAIR_GAP_X)
         this.stairs.push({
-          x,
-          y: prev.y - STAIR_GAP_Y,
+          x, y: prev.y - STAIR_GAP_Y,
           direction: goRight ? 'right' : 'left',
           hasCoin: Math.random() < COIN_CHANCE,
           coinCollected: false
@@ -150,17 +132,15 @@ export class Game {
     }
   }
 
-  getTimeLimit() {
-    const tier = Math.floor(this.currentStair / TIER_SIZE)
-    return Math.max(MIN_TIME_LIMIT, BASE_TIME_LIMIT - tier * TIME_REDUCTION_PER_TIER)
+  _getSpeedMultiplier() {
+    const tier = Math.floor(this.currentStair / SPEED_TIER)
+    return Math.pow(SPEED_MULTIPLIER, tier)
   }
 
   start() {
     this.gameState = 'playing'
     this.running = true
     this.reset()
-    this.timeLimit = this.getTimeLimit()
-    this.timeRemaining = this.timeLimit
     this.lastTime = performance.now()
     soundManager.init()
     soundManager.play('start')
@@ -177,21 +157,18 @@ export class Game {
     if (navigator.vibrate) navigator.vibrate(20)
   }
 
-  // Step left: go up to the left
   stepLeft() {
     if (this.gameState !== 'playing') return
     this.facingRight = false
     this._doStep('left')
   }
 
-  // Step right: go up to the right
   stepRight() {
     if (this.gameState !== 'playing') return
     this.facingRight = true
     this._doStep('right')
   }
 
-  // Step up: always go in the correct direction (auto-match next stair)
   stepUp() {
     if (this.gameState !== 'playing') return
     const nextStair = this.stairs[this.currentStair + 1]
@@ -204,18 +181,17 @@ export class Game {
     const nextStair = this.stairs[this.currentStair + 1]
     if (!nextStair) return
 
-    // Check if chosen direction matches next stair
     if (nextStair.direction !== direction) {
       this._gameOver('fall')
       return
     }
 
-    // Move up
     this.currentStair++
     this.score = this.currentStair
     this._updateCharPosition()
+    this.speedMultiplier = this._getSpeedMultiplier()
 
-    // Combo system
+    // Combo
     const now = performance.now()
     if (now - this.lastStepTime < COMBO_WINDOW) {
       this.combo++
@@ -228,46 +204,38 @@ export class Game {
     }
     this.lastStepTime = now
 
-    // Collect coin
+    // Coin
     if (nextStair.hasCoin && !nextStair.coinCollected) {
       nextStair.coinCollected = true
-      const coinBonus = 1 + Math.floor(this.combo / 5)
-      this.coins += coinBonus
+      this.coins += 1 + Math.floor(this.combo / 5)
       soundManager.play('coin')
       this.particles.emit(this.charX, this.charY - 20, 'coinCollect', 8)
     }
 
-    // Reset timer
-    this.timeLimit = this.getTimeLimit()
-    this.timeRemaining = this.timeLimit
-
-    // Effects
+    // Effects - NO screen shake (removed per user request)
     soundManager.play('step')
-    this.shakeIntensity = 3 + Math.min(this.combo * 0.5, 5)
     this.particles.emit(this.charX + STAIR_WIDTH / 2, this.charY + 20 * CHAR_PIXEL_SIZE, 'dust', 4)
 
-    // Firework in the sky background
+    // Firework in sky
     const w = this.canvas.width || 400
     const h = this.canvas.height || 700
-    const fwX = Math.random() * w
-    const fwY = Math.random() * h * 0.6 // upper 60% of screen
-    this.bgFireworks.emit(fwX, fwY, 'firework', 25)
+    this.bgFireworks.emit(Math.random() * w, Math.random() * h * 0.6, 'firework', 25)
 
     // Speed lines at high combo
     if (this.combo >= 5) {
       this.particles.emit(0, this.charY, 'speedLine', 3)
     }
 
-    // Running animation
+    // Running animation - duration scales with speed
     this.charState = 'running'
     this.runAnimTimer = 200
 
-    // Generate more stairs if needed
-    if (this.currentStair > this.stairs.length - VISIBLE_STAIRS) {
+    // Generate more stairs
+    if (this.currentStair > this.stairs.length - VISIBLE_STAIRS_AHEAD) {
       this._generateStairs(10)
     }
 
-    // Haptic feedback
+    // Haptic
     if (navigator.vibrate) {
       navigator.vibrate(this.combo >= 5 ? [15, 5, 15] : 15)
     }
@@ -280,14 +248,8 @@ export class Game {
     this.charState = reason === 'fall' ? 'falling' : 'idle'
     this.fallStartFrame = this.globalFrame
     soundManager.play('gameover')
-
-    // Strong haptic
     if (navigator.vibrate) navigator.vibrate([50, 30, 50, 30, 100])
 
-    // Big shake
-    this.shakeIntensity = 15
-
-    // Update high scores
     if (this.score > this.highScore) {
       this.highScore = this.score
       localStorage.setItem('infiniteStairs_highScore', this.score.toString())
@@ -296,7 +258,6 @@ export class Game {
       this.highCoins = this.coins
       localStorage.setItem('infiniteStairs_highCoins', this.coins.toString())
     }
-
     this._notifyUpdate()
   }
 
@@ -306,7 +267,7 @@ export class Game {
         score: this.score,
         coins: this.coins,
         combo: this.combo,
-        timeRatio: this.timeRemaining / this.timeLimit,
+        timeRatio: 1,
         gameState: this.gameState,
         highScore: this.highScore,
         highCoins: this.highCoins,
@@ -318,62 +279,58 @@ export class Game {
     if (!this.running) return
 
     const now = performance.now()
-    const dt = Math.min(now - this.lastTime, 50) // cap delta
+    const dt = Math.min(now - this.lastTime, 50)
     this.lastTime = now
-
     this.globalFrame++
 
     if (this.gameState === 'playing') {
-
-      // Decay combo
       if (now - this.lastStepTime > COMBO_WINDOW * 2) {
         this.combo = 0
       }
     }
 
-    // Update animation state
+    // Animation state
     if (this.runAnimTimer > 0) {
-      this.runAnimTimer -= dt
+      this.runAnimTimer -= dt * this.speedMultiplier
       if (this.runAnimTimer <= 0) {
         this.charState = 'idle'
       }
     }
 
-    // Update camera (smooth follow)
+    // Camera (smooth follow, NO shake)
     if (this.currentStair < this.stairs.length) {
       const stair = this.stairs[this.currentStair]
       this.targetCameraY = stair.y - this.canvas.height * 0.55
     }
     this.cameraY += (this.targetCameraY - this.cameraY) * 0.12
 
-    // Update screen shake
-    if (this.shakeIntensity > 0) {
-      this.shakeX = (Math.random() - 0.5) * this.shakeIntensity
-      this.shakeY = (Math.random() - 0.5) * this.shakeIntensity
-      this.shakeIntensity *= 0.85
-      if (this.shakeIntensity < 0.5) {
-        this.shakeIntensity = 0
-        this.shakeX = 0
-        this.shakeY = 0
-      }
-    }
-
-    // Update particles
+    // Particles
     this.particles.update()
     this.bgFireworks.update()
 
-    // Animation frame counter
-    this.animFrame = Math.floor(this.globalFrame / 20) % 2
+    // Crowd system
+    this.crowd.update(this.currentStair, dt)
 
-    // Render
+    // Background theme
+    const w = this.canvas.width || 400
+    const h = this.canvas.height || 700
+    this.bgTheme.update(this.currentStair, w, h, dt)
+
+    // Animation frame - speed affects animation rate
+    const animSpeed = Math.max(5, Math.floor(20 / this.speedMultiplier))
+    if (this.charState === 'running') {
+      this.animFrame = Math.floor(this.globalFrame / animSpeed) % 4
+    } else {
+      // Idle: slower breathing cycle (4 frames)
+      this.animFrame = Math.floor(this.globalFrame / 25) % 4
+    }
+
     this._render()
 
-    // Notify UI
     if (this.globalFrame % 3 === 0) {
       this._notifyUpdate()
     }
 
-    // Stop loop after gameover animation completes
     if (this.gameState === 'gameover' && this.globalFrame - this.fallStartFrame > 60) {
       this._notifyUpdate()
       return
@@ -387,26 +344,28 @@ export class Game {
     const w = canvas.width
     const h = canvas.height
 
-    // Clear
     ctx.fillStyle = '#1a1a2e'
     ctx.fillRect(0, 0, w, h)
 
-    ctx.save()
-    ctx.translate(this.shakeX, this.shakeY)
+    // Draw themed background sky
+    this.bgTheme.drawSky(ctx, w, h, this.currentStair, this.globalFrame)
 
-    // Draw background
-    this._drawBackground(ctx, w, h)
+    // Draw buildings (parallax)
+    this._drawBuildings(ctx, w, h)
 
-    // Draw fireworks in screen space (behind stairs)
+    // Draw flying background characters
+    this.bgTheme.drawFlyingObjects(ctx, this.globalFrame)
+
+    // Draw fireworks in screen space
     this.bgFireworks.draw(ctx)
 
-    // Apply camera transform
+    // Camera transform
     ctx.save()
     const camOffsetX = w / 2
     const camOffsetY = -this.cameraY
     ctx.translate(camOffsetX, camOffsetY)
 
-    // Draw stairs
+    // Draw stairs (including past 20)
     this._drawStairs(ctx, w, h)
 
     // Draw character
@@ -417,43 +376,21 @@ export class Game {
 
     ctx.restore()
 
-    // Draw speed lines (screen space)
+    // Draw crowd (screen space, on top)
+    this.crowd.draw(ctx, w, h)
+
+    // Speed overlay at high combo
     if (this.combo >= 10) {
       this._drawSpeedOverlay(ctx, w, h)
     }
-
-    ctx.restore()
   }
 
-  _drawBackground(ctx, w, h) {
-    // Sky gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, h)
-    gradient.addColorStop(0, '#1a1a3e')
-    gradient.addColorStop(0.5, '#2a2a5e')
-    gradient.addColorStop(1, '#3a3a7e')
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, w, h)
-
-    // Stars
-    ctx.fillStyle = '#ffffff'
-    for (let i = 0; i < 30; i++) {
-      const sx = (i * 137.5 + this.globalFrame * 0.02) % w
-      const sy = (i * 97.3) % (h * 0.6)
-      const blink = Math.sin(this.globalFrame * 0.05 + i) > 0.3
-      if (blink) {
-        const size = (i % 3 === 0) ? 2 : 1
-        ctx.fillRect(sx, sy, size, size)
-      }
-    }
-
-    // Buildings (parallax)
+  _drawBuildings(ctx, w, h) {
     const parallax = this.cameraY * 0.1
     for (const b of this.buildings) {
       ctx.fillStyle = b.color
       const by = h - b.height + parallax % 50
       ctx.fillRect(b.x, by, b.width, b.height)
-
-      // Windows
       if (b.windows) {
         ctx.fillStyle = '#ffdd44'
         for (let wy = by + 10; wy < h; wy += 16) {
@@ -470,19 +407,27 @@ export class Game {
   }
 
   _drawStairs(ctx, w, h) {
-    const startIdx = Math.max(0, this.currentStair - 3)
-    const endIdx = Math.min(this.stairs.length, this.currentStair + VISIBLE_STAIRS)
+    // Show 20 stairs behind and 14 ahead
+    const startIdx = Math.max(0, this.currentStair - VISIBLE_STAIRS_BEHIND)
+    const endIdx = Math.min(this.stairs.length, this.currentStair + VISIBLE_STAIRS_AHEAD)
 
     for (let i = startIdx; i < endIdx; i++) {
       const stair = this.stairs[i]
 
-      // Stair highlight for current
+      // Past stairs fade slightly
+      if (i < this.currentStair) {
+        ctx.globalAlpha = 0.5
+      }
+
+      // Current stair highlight
       if (i === this.currentStair) {
+        ctx.globalAlpha = 1
         ctx.fillStyle = 'rgba(255, 255, 100, 0.15)'
         ctx.fillRect(stair.x - 4, stair.y - 4, STAIR_WIDTH + 8, STAIR_HEIGHT + 8)
       }
 
       drawStair(ctx, stair.x, stair.y, STAIR_WIDTH, STAIR_HEIGHT)
+      ctx.globalAlpha = 1
 
       // Direction indicator for next stair
       if (i === this.currentStair + 1) {
@@ -492,7 +437,6 @@ export class Game {
           ? stair.x + STAIR_WIDTH + 4
           : stair.x - 12
         ctx.fillRect(arrowX, stair.y + 2, 8, 3)
-        // Arrow head
         if (stair.direction === 'right') {
           ctx.fillRect(arrowX + 6, stair.y, 3, 3)
           ctx.fillRect(arrowX + 6, stair.y + 4, 3, 3)
@@ -503,7 +447,7 @@ export class Game {
         ctx.globalAlpha = 1
       }
 
-      // Draw coin
+      // Coin
       if (stair.hasCoin && !stair.coinCollected) {
         drawCoin(ctx, stair.x + STAIR_WIDTH / 2 - 6, stair.y - 22, 12, this.globalFrame)
       }
@@ -515,47 +459,40 @@ export class Game {
     if (this.charState === 'falling') {
       sprite = SPRITES.charFall
     } else if (this.charState === 'running') {
-      sprite = SPRITES.charRun[this.animFrame]
+      sprite = SPRITES.charRun[this.animFrame % SPRITES.charRun.length]
     } else {
-      sprite = SPRITES.charIdle[this.animFrame]
+      sprite = SPRITES.charIdle[this.animFrame % SPRITES.charIdle.length]
     }
 
-    // Add breathing bob for idle
     let yOffset = 0
     if (this.charState === 'idle') {
       yOffset = Math.sin(this.globalFrame * 0.08) * 2
     }
-
-    // Falling animation
     if (this.charState === 'falling') {
       const fallFrames = this.globalFrame - (this.fallStartFrame || this.globalFrame)
       yOffset = Math.min(fallFrames * 3, 200)
     }
 
     drawSprite(
-      ctx,
-      sprite,
+      ctx, sprite,
       this.charX + STAIR_WIDTH / 2 - 8 * CHAR_PIXEL_SIZE,
       this.charY + yOffset,
       CHAR_PIXEL_SIZE,
       !this.facingRight
     )
 
-    // Shadow under character
+    // Shadow
     ctx.fillStyle = 'rgba(0,0,0,0.3)'
     ctx.fillRect(
       this.charX + STAIR_WIDTH / 2 - 12,
       this.stairs[this.currentStair]?.y - 2 || 0,
-      24,
-      3
+      24, 3
     )
   }
 
   _drawSpeedOverlay(ctx, w, h) {
     const intensity = Math.min((this.combo - 10) / 20, 1)
     ctx.globalAlpha = intensity * 0.15
-
-    // Vignette / tunnel effect
     const gradient = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w * 0.7)
     gradient.addColorStop(0, 'transparent')
     gradient.addColorStop(1, '#ff4444')
