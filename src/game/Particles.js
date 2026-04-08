@@ -69,11 +69,29 @@ export class ParticleSystem {
             life: 1,
             decay: 0.015,
             size: 16,
-            text: count + '',  // abuse count as text
+            text: count + '',
             color: '#ffdd44',
             type: 'text'
           })
           return // only one
+        case 'firework': {
+          const colors = ['#ff4444', '#ff8833', '#ffdd44', '#44cc44', '#4488ff', '#aa44ff', '#ff44aa', '#ffffff']
+          for (let j = 0; j < count; j++) {
+            const angle = (Math.PI * 2 / count) * j + Math.random() * 0.3
+            const speed = 3 + Math.random() * 4
+            this.particles.push({
+              x, y,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              life: 1,
+              decay: 0.015 + Math.random() * 0.01,
+              size: 2 + Math.random() * 3,
+              color: colors[Math.floor(Math.random() * colors.length)],
+              type: 'firework'
+            })
+          }
+          return
+        }
       }
     }
   }
@@ -85,7 +103,11 @@ export class ParticleSystem {
       p.y += p.vy
       p.life -= p.decay
       if (p.type === 'dust') {
-        p.vy += 0.05 // gravity
+        p.vy += 0.05
+      }
+      if (p.type === 'firework') {
+        p.vy += 0.12
+        p.vx *= 0.98
       }
       if (p.life <= 0) {
         this.particles.splice(i, 1)
@@ -105,6 +127,17 @@ export class ParticleSystem {
       } else if (p.type === 'line') {
         ctx.fillStyle = p.color
         ctx.fillRect(p.x, p.y, p.width, p.height)
+      } else if (p.type === 'firework') {
+        ctx.fillStyle = p.color
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2)
+        ctx.fill()
+        // Trail
+        ctx.globalAlpha = Math.max(0, p.life * 0.4)
+        ctx.beginPath()
+        ctx.arc(p.x - p.vx, p.y - p.vy, p.size * p.life * 0.6, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.globalAlpha = Math.max(0, p.life)
       } else if (p.type === 'sparkle') {
         ctx.fillStyle = p.color
         // Diamond shape

@@ -244,6 +244,9 @@ export class Game {
     this.shakeIntensity = 3 + Math.min(this.combo * 0.5, 5)
     this.particles.emit(this.charX + STAIR_WIDTH / 2, this.charY + 20 * CHAR_PIXEL_SIZE, 'dust', 4)
 
+    // Firework on every step
+    this.particles.emit(this.charX + STAIR_WIDTH / 2, this.charY, 'firework', 20)
+
     // Speed lines at high combo
     if (this.combo >= 5) {
       this.particles.emit(0, this.charY, 'speedLine', 3)
