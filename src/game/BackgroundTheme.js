@@ -258,20 +258,16 @@ export class BackgroundTheme {
   drawLandmarkBuildings(ctx, w, h, floor, globalFrame) {
     const lm = this._getLandmark(floor)
 
-    // How far into this 100-floor segment are we? (0 to 99)
+    // How far into this 100-floor segment (0 to 99)
     const inSegment = floor % 100
-    // progress 0 = landmark just appeared at top, 1 = fully scrolled down
-    const progress = inSegment / 99
+    // Slow steady drift: 1.5px per stair downward
+    const drift = inSegment * 1.5
 
-    // The landmark starts showing from the top and slides down as you climb
-    // At floor X00: top of building peeks above bottom
-    // At floor X99: building has fully scrolled down past screen
-
-    // Main landmark - LEFT side, large
+    // All landmarks anchored to BOTTOM of screen
+    // Left landmark - large, partially below viewport
     const scale1 = 4
     const lmX1 = w * 0.15
-    // Starts at bottom of screen, slides down further
-    const lmY1 = h * 0.55 + progress * h * 0.5
+    const lmY1 = h + drift  // bottom edge + slow drift down
 
     ctx.save()
     ctx.translate(lmX1, lmY1)
@@ -282,10 +278,10 @@ export class BackgroundTheme {
     ctx.globalAlpha = 1
     ctx.restore()
 
-    // Second landmark - RIGHT side, smaller (depth illusion)
+    // Right landmark - medium, slightly behind
     const scale2 = 2.8
     const lmX2 = w * 0.82
-    const lmY2 = h * 0.6 + progress * h * 0.45
+    const lmY2 = h + drift * 0.7
 
     ctx.save()
     ctx.translate(lmX2, lmY2)
@@ -296,10 +292,10 @@ export class BackgroundTheme {
     ctx.globalAlpha = 1
     ctx.restore()
 
-    // Third small one in far back (more depth)
+    // Center-back landmark - small, far away
     const scale3 = 1.5
-    const lmX3 = w * 0.5
-    const lmY3 = h * 0.7 + progress * h * 0.3
+    const lmX3 = w * 0.48
+    const lmY3 = h + drift * 0.4
 
     ctx.save()
     ctx.translate(lmX3, lmY3)
@@ -310,14 +306,14 @@ export class BackgroundTheme {
     ctx.globalAlpha = 1
     ctx.restore()
 
-    // Window lights on the landmarks (like the original buildings)
+    // Window lights on landmarks
     ctx.fillStyle = '#ffdd44'
     const windowAreas = [
-      { x: lmX1 - 40, y: lmY1 - 80, w: 80, h: 120, alpha: 0.5 },
-      { x: lmX2 - 30, y: lmY2 - 50, w: 60, h: 80, alpha: 0.3 },
+      { x: lmX1 - 40, y: lmY1 - 120, w: 80, h: 140, alpha: 0.5 },
+      { x: lmX2 - 30, y: lmY2 - 70, w: 60, h: 90, alpha: 0.3 },
     ]
     for (const area of windowAreas) {
-      for (let wy = area.y; wy < area.y + area.h; wy += 14) {
+      for (let wy = Math.max(0, area.y); wy < Math.min(h, area.y + area.h); wy += 14) {
         for (let wx = area.x; wx < area.x + area.w; wx += 10) {
           if (Math.sin(wx * 7 + wy * 3 + globalFrame * 0.01) > 0.5) {
             ctx.globalAlpha = area.alpha * (0.5 + Math.sin(globalFrame * 0.03 + wx) * 0.3)
@@ -329,8 +325,8 @@ export class BackgroundTheme {
     ctx.globalAlpha = 1
 
     // Country name at bottom
-    const fadeIn = Math.min(1, inSegment / 10) // fade in over first 10 stairs
-    const fadeOut = Math.min(1, (99 - inSegment) / 10) // fade out over last 10
+    const fadeIn = Math.min(1, inSegment / 10)
+    const fadeOut = Math.min(1, (99 - inSegment) / 10)
     const alpha = fadeIn * fadeOut
     if (alpha > 0.01) {
       ctx.globalAlpha = alpha * 0.8
