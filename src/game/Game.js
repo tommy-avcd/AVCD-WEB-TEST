@@ -21,12 +21,13 @@ const SPEED_TIER = 20
 const SPEED_MULTIPLIER = 3
 
 export class Game {
-  constructor(canvas, onUpdate, playerChar, aiChar) {
+  constructor(canvas, onUpdate, playerChar, aiChar, startFloor) {
     this.canvas = canvas
     this.ctx = canvas.getContext('2d')
     this.onUpdate = onUpdate
     this.playerChar = playerChar || null
     this.aiCharData = aiChar || null
+    this.startFloor = startFloor || 0
     this.particles = new ParticleSystem()
     this.bgFireworks = new ParticleSystem()
     this.crowd = new CrowdSystem()
@@ -135,6 +136,20 @@ export class Game {
     this.gameState = 'playing'
     this.running = true
     this.reset()
+
+    // Skip to start floor (elevator)
+    if (this.startFloor > 0) {
+      // Generate enough stairs
+      this._generateStairs(this.startFloor + VISIBLE_STAIRS_AHEAD + VISIBLE_STAIRS_BEHIND)
+      this.currentStair = this.startFloor
+      this.score = this.startFloor
+      this._updateCharPosition()
+      // AI also starts at same floor
+      this.ai.currentStair = this.startFloor
+      this.ai.score = this.startFloor
+      this.ai._calculateDeathFloor(this.startFloor)
+    }
+
     this.lastTime = performance.now()
     soundManager.init()
     soundManager.play('start')

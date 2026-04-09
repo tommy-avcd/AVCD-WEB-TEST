@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import { Game } from '../game/Game.js'
 
-export default function GameScreen({ onUpdate, autoStart, playerChar, aiChar }) {
+export default function GameScreen({ onUpdate, autoStart, playerChar, aiChar, startFloor }) {
   const canvasRef = useRef(null)
   const gameRef = useRef(null)
   const dirBtnRef = useRef(null)
@@ -23,7 +23,7 @@ export default function GameScreen({ onUpdate, autoStart, playerChar, aiChar }) 
       }
     }
 
-    const game = new Game(canvas, onUpdate, playerChar, aiChar)
+    const game = new Game(canvas, onUpdate, playerChar, aiChar, startFloor || 0)
     gameRef.current = game
     resize()
 
@@ -36,7 +36,7 @@ export default function GameScreen({ onUpdate, autoStart, playerChar, aiChar }) 
       game.stop()
       window.removeEventListener('resize', resize)
     }
-  }, [onUpdate, autoStart, playerChar, aiChar])
+  }, [onUpdate, autoStart, playerChar, aiChar, startFloor])
 
   // Native touch/mouse event binding - bypasses React's synthetic events
   useEffect(() => {

@@ -3,6 +3,7 @@ import GameScreen from './components/GameScreen.jsx'
 import StartScreen from './components/StartScreen.jsx'
 import CharSelectScreen from './components/CharSelectScreen.jsx'
 import MatchScreen from './components/MatchScreen.jsx'
+import ElevatorScreen from './components/ElevatorScreen.jsx'
 import ResultScreen from './components/ResultScreen.jsx'
 import { getRandomCharacter } from './game/Characters.js'
 import './styles.css'
@@ -17,6 +18,7 @@ export default function App() {
   const [gameKey, setGameKey] = useState(0)
   const [playerChar, setPlayerChar] = useState(null)
   const [aiChar, setAiChar] = useState(null)
+  const [startFloor, setStartFloor] = useState(0)
   const gameOverTimerRef = useRef(null)
 
   const handleStart = useCallback(() => {
@@ -26,6 +28,11 @@ export default function App() {
   const handleCharSelect = useCallback((char) => {
     setPlayerChar(char)
     setAiChar(getRandomCharacter())
+    setScreen('elevator')
+  }, [])
+
+  const handleElevatorComplete = useCallback((floor) => {
+    setStartFloor(floor)
     setScreen('match')
   }, [])
 
@@ -72,6 +79,9 @@ export default function App() {
       {screen === 'select' && (
         <CharSelectScreen onSelect={handleCharSelect} />
       )}
+      {screen === 'elevator' && (
+        <ElevatorScreen onComplete={handleElevatorComplete} />
+      )}
       {screen === 'match' && playerChar && aiChar && (
         <MatchScreen
           playerChar={playerChar}
@@ -86,6 +96,7 @@ export default function App() {
           autoStart={true}
           playerChar={playerChar}
           aiChar={aiChar}
+          startFloor={startFloor}
         />
       )}
       {screen === 'result' && (

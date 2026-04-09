@@ -738,3 +738,164 @@ html, body, #root, .app {
 }
 .score-label { font-size: 8px; }
 .score-ai-num { font-size: 14px; }
+
+/* === ELEVATOR SCREEN === */
+.elevator-screen {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(180deg, #1a1a2e 0%, #2a2a4e 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 100; gap: 24px;
+}
+
+.elevator-box {
+  width: 140px; height: 200px;
+  background: #888899;
+  border: 4px solid #666677;
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-start;
+  position: relative; overflow: hidden;
+}
+
+.elevator-doors {
+  display: flex; width: 100%; height: 160px; margin-top: 30px;
+}
+.elevator-door-left, .elevator-door-right {
+  width: 50%; height: 100%;
+  background: #aabbcc;
+  border: 2px solid #8899aa;
+  transition: transform 1s ease;
+}
+.elevator-door-left.open { transform: translateX(-100%); }
+.elevator-door-right.open { transform: translateX(100%); }
+
+.elevator-display {
+  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+  background: #111122; padding: 4px 12px; border-radius: 2px;
+  border: 1px solid #444455;
+}
+.elevator-floor-num {
+  font-size: 14px; color: #ff4444; font-family: 'Press Start 2P', monospace;
+}
+.elevator-arrow {
+  position: absolute; top: 6px; right: 10px;
+  color: #44ff44; font-size: 12px;
+  animation: arrowBlink 0.8s infinite;
+}
+@keyframes arrowBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+.elevator-question {
+  font-size: 20px; color: #ffffff;
+  text-shadow: 2px 2px 0 #000000;
+}
+
+.elevator-buttons {
+  display: flex; gap: 20px;
+}
+.elevator-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 16px; padding: 14px 32px;
+  border: none; border-radius: 8px; cursor: pointer;
+  touch-action: manipulation;
+}
+.elevator-yes {
+  background: linear-gradient(180deg, #44cc44, #228822);
+  color: #fff; box-shadow: 0 4px 0 #116611;
+}
+.elevator-yes:active { transform: translateY(2px); box-shadow: 0 2px 0 #116611; }
+.elevator-no {
+  background: linear-gradient(180deg, #cc4444, #882222);
+  color: #fff; box-shadow: 0 4px 0 #661111;
+}
+.elevator-no:active { transform: translateY(2px); box-shadow: 0 2px 0 #661111; }
+
+/* Riding phase */
+.elevator-screen.riding {
+  background: #111122;
+}
+.elevator-shaft {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  overflow: hidden;
+}
+.shaft-lines {
+  position: absolute; top: 0; left: 0; width: 100%; height: 200%;
+  background: repeating-linear-gradient(
+    0deg, transparent, transparent 18px, #222244 18px, #222244 20px
+  );
+  animation: shaftScroll 0.3s linear infinite;
+}
+@keyframes shaftScroll { from { transform: translateY(0); } to { transform: translateY(20px); } }
+
+.elevator-cabin {
+  z-index: 2; text-align: center;
+  background: rgba(20, 20, 40, 0.8);
+  padding: 24px; border-radius: 12px;
+  border: 2px solid #444466;
+}
+.elevator-display-large { margin-bottom: 12px; }
+.elevator-label {
+  font-size: 10px; color: #888899; letter-spacing: 4px;
+}
+.elevator-counter {
+  font-size: 28px; color: #ff4444;
+  text-shadow: 0 0 10px rgba(255,68,68,0.5);
+  font-family: 'Press Start 2P', monospace;
+}
+.elevator-speed-indicator {
+  font-size: 8px; color: #44ff44;
+  animation: arrowBlink 0.4s infinite;
+  margin-bottom: 12px;
+}
+.elevator-passenger {
+  display: flex; justify-content: center;
+}
+.elevator-char-bounce {
+  width: 30px; height: 36px;
+  background: linear-gradient(180deg, #ff4444 0% 20%, #ffcc99 20% 40%, #4488ff 40% 70%, #8b5e3c 70% 100%);
+  animation: elevatorBounce 0.3s ease-in-out infinite alternate;
+}
+@keyframes elevatorBounce { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+
+/* Arrived phase */
+.elevator-screen.arrived {
+  background: linear-gradient(180deg, #222244 0%, #111133 100%);
+}
+.elevator-ding {
+  font-size: 24px; color: #ffdd44;
+  animation: dingPulse 0.5s ease-in-out;
+  margin-bottom: 20px;
+}
+@keyframes dingPulse { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+.elevator-arrived-text {
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.arrived-floor {
+  font-size: 20px; color: #ff4444;
+  text-shadow: 2px 2px 0 #880000;
+}
+.arrived-msg {
+  font-size: 28px; color: #ffffff;
+  text-shadow: 3px 3px 0 #000000;
+  animation: arrivedSlide 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes arrivedSlide {
+  from { transform: scale(0.3) translateY(50px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+.elevator-doors-open {
+  display: flex; width: 140px; height: 160px;
+  margin-top: 24px; border: 4px solid #666677;
+  border-radius: 4px; overflow: hidden;
+  background: #55bbff;
+}
+.elevator-doors-open .elevator-door-left {
+  animation: doorOpenLeft 1s ease forwards;
+}
+.elevator-doors-open .elevator-door-right {
+  animation: doorOpenRight 1s ease forwards;
+}
+@keyframes doorOpenLeft { to { transform: translateX(-100%); } }
+@keyframes doorOpenRight { to { transform: translateX(100%); } }
