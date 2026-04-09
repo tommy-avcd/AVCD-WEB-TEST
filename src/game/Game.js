@@ -409,6 +409,16 @@ export class Game {
     // Draw crowd (screen space, on top)
     this.crowd.draw(ctx, w, h)
 
+    // AI death notification
+    if (this.ai && !this.ai.alive) {
+      ctx.fillStyle = 'rgba(0,0,0,0.6)'
+      ctx.fillRect(w * 0.15, h * 0.12, w * 0.7, 36)
+      ctx.fillStyle = '#ff6644'
+      ctx.font = 'bold 12px monospace'
+      ctx.textAlign = 'center'
+      ctx.fillText(`CPU DEFEATED at ${this.ai.score} stairs!`, w / 2, h * 0.12 + 23)
+    }
+
     // Treasure notification
     this.bgTheme.drawTreasureNotification(ctx, w, h)
 
