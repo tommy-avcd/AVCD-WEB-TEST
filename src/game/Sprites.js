@@ -272,6 +272,43 @@ export function drawSprite(ctx, sprite, x, y, pixelSize, flip = false) {
   ctx.restore()
 }
 
+// Draw a character sprite with custom color scheme
+export function drawCharSprite(ctx, sprite, x, y, pixelSize, flip, charData) {
+  if (!charData) return drawSprite(ctx, sprite, x, y, pixelSize, flip)
+
+  const h = sprite.length
+  const w = sprite[0].length
+
+  // Color remap table
+  const remap = {
+    [PALETTE.darkRed]: charData.hatDark || charData.hat || PALETTE.darkRed,
+    [PALETTE.red]: charData.hat || PALETTE.red,
+    [PALETTE.darkBlue]: charData.shirtDark || PALETTE.darkBlue,
+    [PALETTE.blue]: charData.shirt || PALETTE.blue,
+    [PALETTE.darkBrown]: charData.shoes || PALETTE.darkBrown,
+    [PALETTE.brown]: charData.pants || PALETTE.brown,
+    [PALETTE.skin]: charData.skin || PALETTE.skin,
+  }
+
+  ctx.save()
+  if (flip) {
+    ctx.translate(x + w * pixelSize, y)
+    ctx.scale(-1, 1)
+    x = 0
+    y = 0
+  }
+
+  for (let row = 0; row < h; row++) {
+    for (let col = 0; col < w; col++) {
+      const color = sprite[row][col]
+      if (color === 'transparent') continue
+      ctx.fillStyle = remap[color] || color
+      ctx.fillRect(x + col * pixelSize, y + row * pixelSize, pixelSize, pixelSize)
+    }
+  }
+  ctx.restore()
+}
+
 // Draw a stair block with customizable colors
 export function drawStair(ctx, x, y, width, height, theme) {
   const light = theme?.light || PALETTE.stairLight

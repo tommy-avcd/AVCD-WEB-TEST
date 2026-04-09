@@ -1,9 +1,10 @@
-import { SPRITES, drawSprite, drawStair, drawCoin, PALETTE } from './Sprites.js'
+import { SPRITES, drawSprite, drawCharSprite, drawStair, drawCoin, PALETTE } from './Sprites.js'
 import { ParticleSystem } from './Particles.js'
 import { soundManager } from './SoundManager.js'
 import { CrowdSystem } from './CrowdSystem.js'
 import { BackgroundTheme } from './BackgroundTheme.js'
 import { WeatherSystem } from './WeatherSystem.js'
+import { AIPlayer } from './AIPlayer.js'
 
 const STAIR_WIDTH = 64
 const STAIR_HEIGHT = 16
@@ -20,15 +21,19 @@ const SPEED_TIER = 20
 const SPEED_MULTIPLIER = 3
 
 export class Game {
-  constructor(canvas, onUpdate) {
+  constructor(canvas, onUpdate, playerChar, aiChar) {
     this.canvas = canvas
     this.ctx = canvas.getContext('2d')
     this.onUpdate = onUpdate
+    this.playerChar = playerChar || null
+    this.aiCharData = aiChar || null
     this.particles = new ParticleSystem()
     this.bgFireworks = new ParticleSystem()
     this.crowd = new CrowdSystem()
     this.bgTheme = new BackgroundTheme()
     this.weather = new WeatherSystem()
+    this.ai = new AIPlayer()
+    if (aiChar) this.ai.characterId = aiChar.id
 
     this.reset()
     this.animFrame = 0
@@ -40,9 +45,6 @@ export class Game {
     // Camera
     this.cameraY = 0
     this.targetCameraY = 0
-
-    // Background buildings
-    this.buildings = this._generateBuildings()
   }
 
   reset() {
@@ -78,21 +80,11 @@ export class Game {
     this.targetCameraY = 0
     this.particles.clear()
     if (this.bgFireworks) this.bgFireworks.clear()
+
+    // Reset AI
+    this.ai.reset()
   }
 
-  _generateBuildings() {
-    const buildings = []
-    for (let i = 0; i < 8; i++) {
-      buildings.push({
-        x: Math.random() * 400,
-        width: 30 + Math.random() * 60,
-        height: 100 + Math.random() * 300,
-        color: ['#2a2a4e', '#3a3a5e', '#252545', '#35354a'][Math.floor(Math.random() * 4)],
-        windows: Math.random() > 0.3
-      })
-    }
-    return buildings
-  }
 
   _generateStairs(count) {
     const startIdx = this.stairs.length
@@ -283,6 +275,8 @@ export class Game {
         gameState: this.gameState,
         highScore: this.highScore,
         highCoins: this.highCoins,
+        aiScore: this.ai.score,
+        aiAlive: this.ai.alive,
       })
     }
   }
@@ -319,6 +313,16 @@ export class Game {
     // Particles
     this.particles.update()
     this.bgFireworks.update()
+
+    // AI player update
+    if (this.gameState === 'playing') {
+      this.ai.update(dt, this.stairs, this.currentStair)
+      this.ai.updateAnimation(dt)
+      // If AI dies and player is still alive, player wins
+      if (!this.ai.alive && this.gameState === 'playing') {
+        // AI lost - game continues, player can keep going
+      }
+    }
 
     // Crowd system
     this.crowd.update(this.currentStair, dt)
@@ -391,7 +395,10 @@ export class Game {
     // Draw stairs with themed colors
     this._drawStairs(ctx, w, h)
 
-    // Draw character
+    // Draw AI character
+    this._drawAICharacter(ctx)
+
+    // Draw player character
     this._drawCharacter(ctx)
 
     // Draw particles (world space)
@@ -486,12 +493,13 @@ export class Game {
       yOffset = Math.min(fallFrames * 3, 200)
     }
 
-    drawSprite(
+    drawCharSprite(
       ctx, sprite,
       this.charX + STAIR_WIDTH / 2 - 8 * CHAR_PIXEL_SIZE,
       this.charY + yOffset,
       CHAR_PIXEL_SIZE,
-      !this.facingRight
+      !this.facingRight,
+      this.playerChar
     )
 
     // Shadow
@@ -501,6 +509,51 @@ export class Game {
       this.stairs[this.currentStair]?.y - 2 || 0,
       24, 3
     )
+  }
+
+  _drawAICharacter(ctx) {
+    if (!this.ai || this.ai.currentStair >= this.stairs.length) return
+
+    const stair = this.stairs[this.ai.currentStair]
+    if (!stair) return
+
+    const aiX = stair.x
+    const aiY = stair.y - 20 * CHAR_PIXEL_SIZE
+
+    let sprite
+    if (this.ai.charState === 'falling') {
+      sprite = SPRITES.charFall
+    } else if (this.ai.charState === 'running') {
+      sprite = SPRITES.charRun[this.animFrame % SPRITES.charRun.length]
+    } else {
+      sprite = SPRITES.charIdle[this.animFrame % SPRITES.charIdle.length]
+    }
+
+    let yOffset = 0
+    if (this.ai.charState === 'idle' && this.ai.alive) {
+      yOffset = Math.sin(this.globalFrame * 0.08 + 1) * 2
+    }
+    if (!this.ai.alive) {
+      yOffset = 50
+    }
+
+    // Draw with slight transparency so player stands out
+    ctx.globalAlpha = 0.75
+    drawCharSprite(
+      ctx, sprite,
+      aiX + STAIR_WIDTH / 2 - 8 * CHAR_PIXEL_SIZE,
+      aiY + yOffset,
+      CHAR_PIXEL_SIZE,
+      !this.ai.facingRight,
+      this.aiCharData
+    )
+    ctx.globalAlpha = 1
+
+    // "CPU" label above AI
+    ctx.fillStyle = '#ff8844'
+    ctx.font = 'bold 8px monospace'
+    ctx.textAlign = 'center'
+    ctx.fillText('CPU', aiX + STAIR_WIDTH / 2, aiY - 5)
   }
 
   _drawTreasureChest(ctx, x, y) {

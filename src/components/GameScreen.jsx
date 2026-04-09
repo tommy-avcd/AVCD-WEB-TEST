@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import { Game } from '../game/Game.js'
 
-export default function GameScreen({ onUpdate, autoStart }) {
+export default function GameScreen({ onUpdate, autoStart, playerChar, aiChar }) {
   const canvasRef = useRef(null)
   const gameRef = useRef(null)
   const dirBtnRef = useRef(null)
@@ -23,7 +23,7 @@ export default function GameScreen({ onUpdate, autoStart }) {
       }
     }
 
-    const game = new Game(canvas, onUpdate)
+    const game = new Game(canvas, onUpdate, playerChar, aiChar)
     gameRef.current = game
     resize()
 
@@ -36,7 +36,7 @@ export default function GameScreen({ onUpdate, autoStart }) {
       game.stop()
       window.removeEventListener('resize', resize)
     }
-  }, [onUpdate, autoStart])
+  }, [onUpdate, autoStart, playerChar, aiChar])
 
   // Native touch/mouse event binding - bypasses React's synthetic events
   useEffect(() => {
@@ -192,6 +192,7 @@ function ScoreDisplay({ gameRef }) {
   const scoreRef = useRef(null)
   const coinRef = useRef(null)
   const comboRef = useRef(null)
+  const aiScoreRef = useRef(null)
 
   useEffect(() => {
     let running = true
@@ -201,6 +202,9 @@ function ScoreDisplay({ gameRef }) {
       if (game) {
         if (scoreRef.current) scoreRef.current.textContent = game.score
         if (coinRef.current) coinRef.current.textContent = game.coins
+        if (aiScoreRef.current) {
+          aiScoreRef.current.textContent = game.ai ? game.ai.score : 0
+        }
         if (comboRef.current) {
           if (game.combo >= 3) {
             comboRef.current.textContent = `x${game.combo}`
@@ -219,10 +223,16 @@ function ScoreDisplay({ gameRef }) {
 
   return (
     <div className="score-area">
-      <div className="score-main" ref={scoreRef}>0</div>
-      <div className="score-coins">
-        <span className="coin-icon">●</span>
-        <span ref={coinRef}>0</span>
+      <div className="score-vs-row">
+        <div className="score-ai">
+          <span className="score-label">CPU</span>
+          <span className="score-ai-num" ref={aiScoreRef}>0</span>
+        </div>
+        <div className="score-main" ref={scoreRef}>0</div>
+        <div className="score-coins">
+          <span className="coin-icon">●</span>
+          <span ref={coinRef}>0</span>
+        </div>
       </div>
       <div className="combo-display" ref={comboRef} style={{ display: 'none' }}>x0</div>
     </div>

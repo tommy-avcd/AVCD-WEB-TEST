@@ -1,24 +1,35 @@
 import React, { useState, useCallback, useRef } from 'react'
 import GameScreen from './components/GameScreen.jsx'
 import StartScreen from './components/StartScreen.jsx'
-import GameOverScreen from './components/GameOverScreen.jsx'
+import CharSelectScreen from './components/CharSelectScreen.jsx'
+import MatchScreen from './components/MatchScreen.jsx'
+import ResultScreen from './components/ResultScreen.jsx'
+import { getRandomCharacter } from './game/Characters.js'
 import './styles.css'
 
 export default function App() {
   const [screen, setScreen] = useState('start')
   const [gameData, setGameData] = useState({
-    score: 0,
-    coins: 0,
-    combo: 0,
-    timeRatio: 1,
-    highScore: 0,
-    highCoins: 0,
+    score: 0, coins: 0, combo: 0,
+    aiScore: 0, gameState: 'playing',
+    highScore: 0, highCoins: 0,
   })
   const [gameKey, setGameKey] = useState(0)
+  const [playerChar, setPlayerChar] = useState(null)
+  const [aiChar, setAiChar] = useState(null)
   const gameOverTimerRef = useRef(null)
 
   const handleStart = useCallback(() => {
-    // Clear any pending game over timer from previous game
+    setScreen('select')
+  }, [])
+
+  const handleCharSelect = useCallback((char) => {
+    setPlayerChar(char)
+    setAiChar(getRandomCharacter())
+    setScreen('match')
+  }, [])
+
+  const handleMatchReady = useCallback(() => {
     if (gameOverTimerRef.current) {
       clearTimeout(gameOverTimerRef.current)
       gameOverTimerRef.current = null
@@ -31,9 +42,26 @@ export default function App() {
     setGameData(data)
     if (data.gameState === 'gameover' && !gameOverTimerRef.current) {
       gameOverTimerRef.current = setTimeout(() => {
-        setScreen('gameover')
-      }, 800)
+        setScreen('result')
+      }, 1000)
     }
+  }, [])
+
+  const handleRestart = useCallback(() => {
+    if (gameOverTimerRef.current) {
+      clearTimeout(gameOverTimerRef.current)
+      gameOverTimerRef.current = null
+    }
+    setAiChar(getRandomCharacter())
+    setScreen('match')
+  }, [])
+
+  const handleMenu = useCallback(() => {
+    if (gameOverTimerRef.current) {
+      clearTimeout(gameOverTimerRef.current)
+      gameOverTimerRef.current = null
+    }
+    setScreen('start')
   }, [])
 
   return (
@@ -41,22 +69,34 @@ export default function App() {
       {screen === 'start' && (
         <StartScreen onStart={handleStart} />
       )}
-      {(screen === 'playing' || (screen === 'gameover')) && (
+      {screen === 'select' && (
+        <CharSelectScreen onSelect={handleCharSelect} />
+      )}
+      {screen === 'match' && playerChar && aiChar && (
+        <MatchScreen
+          playerChar={playerChar}
+          aiChar={aiChar}
+          onReady={handleMatchReady}
+        />
+      )}
+      {(screen === 'playing' || screen === 'result') && (
         <GameScreen
           key={gameKey}
           onUpdate={handleUpdate}
           autoStart={true}
+          playerChar={playerChar}
+          aiChar={aiChar}
         />
       )}
-      {screen === 'gameover' && (
-        <GameOverScreen
-          score={gameData.score}
-          coins={gameData.coins}
-          highScore={gameData.highScore}
-          highCoins={gameData.highCoins}
-          combo={gameData.combo}
-          onRestart={handleStart}
-          onMenu={() => setScreen('start')}
+      {screen === 'result' && (
+        <ResultScreen
+          won={gameData.score > gameData.aiScore}
+          playerScore={gameData.score}
+          aiScore={gameData.aiScore}
+          playerChar={playerChar}
+          aiChar={aiChar}
+          onRestart={handleRestart}
+          onMenu={handleMenu}
         />
       )}
     </div>
