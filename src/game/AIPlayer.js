@@ -1,5 +1,8 @@
-// AI Player system with progressive difficulty
-// AI doesn't die easily - it just slows down when making mistakes
+// AI Player - respawns with increasing intelligence
+// Intelligence: 0-100, grows by 25 each respawn
+// At max intelligence: mistakes 1 in 1000 stairs
+
+import { getRandomCharacter } from './Characters.js'
 
 export class AIPlayer {
   constructor() {
@@ -10,9 +13,14 @@ export class AIPlayer {
     this.charState = 'idle'
     this.runAnimTimer = 0
     this.lastStepTime = 0
-    this.stepInterval = 600 // ms between steps
-    this.characterId = null
-    this.deathFloor = 0 // floor where AI will die (calculated at start)
+    this.stepInterval = 500
+    this.character = null
+    this.intelligence = 0  // 0-100
+    this.generation = 1    // which AI we're on
+    this.deathTime = 0
+    this.deathMessage = ''
+    this.showDeath = false
+    this.stairsSinceLastMistake = 0
   }
 
   reset() {
@@ -22,51 +30,70 @@ export class AIPlayer {
     this.facingRight = true
     this.charState = 'idle'
     this.runAnimTimer = 0
-    this.lastStepTime = 0
-    // AI will survive for a random number of stairs based on difficulty
-    this._calculateDeathFloor(0)
+    this.lastStepTime = performance.now()
+    this.intelligence = 0
+    this.generation = 1
+    this.deathTime = 0
+    this.showDeath = false
+    this.stairsSinceLastMistake = 0
+    this.character = getRandomCharacter()
   }
 
-  // Calculate when AI will die - it survives longer as player gets better
-  _calculateDeathFloor(playerBest) {
-    // Base survival: 20-80 stairs at start, increases with player skill
-    const minSurvival = 20 + Math.floor(playerBest * 0.3)
-    const maxSurvival = 80 + Math.floor(playerBest * 0.8)
-    this.deathFloor = minSurvival + Math.floor(Math.random() * (maxSurvival - minSurvival))
-  }
-
-  // AI step speed - gets faster as it climbs
-  _getStepInterval() {
-    // Starts slow, gets faster gradually
-    const speedup = Math.min(this.currentStair * 2, 300)
-    return Math.max(250, this.stepInterval - speedup)
-  }
-
-  // Respawn AI after death with a new random death floor
-  respawn(playerFloor) {
+  // Respawn with new character and higher intelligence
+  _respawn(playerFloor) {
+    this.intelligence = Math.min(100, this.intelligence + 25)
+    this.generation++
+    this.character = getRandomCharacter()
     this.alive = true
     this.charState = 'idle'
     this.runAnimTimer = 0
-    this.lastStepTime = performance.now() + 1000 // 1s delay before restarting
-    this._calculateDeathFloor(playerFloor)
-    // AI respawns 5 stairs behind the player
-    this.currentStair = Math.max(0, playerFloor - 5)
+    this.showDeath = false
+    this.stairsSinceLastMistake = 0
+    // Respawn slightly behind player
+    this.currentStair = Math.max(0, playerFloor - 3)
     this.score = this.currentStair
+    this.lastStepTime = performance.now() + 500
+  }
+
+  // How often AI makes mistakes based on intelligence
+  // intelligence 0: 1 mistake per 20 stairs
+  // intelligence 25: 1 mistake per 80 stairs
+  // intelligence 50: 1 mistake per 200 stairs
+  // intelligence 75: 1 mistake per 500 stairs
+  // intelligence 100: 1 mistake per 1000 stairs
+  _getMistakeInterval() {
+    if (this.intelligence >= 100) return 1000
+    if (this.intelligence >= 75) return 500
+    if (this.intelligence >= 50) return 200
+    if (this.intelligence >= 25) return 80
+    return 20
+  }
+
+  // AI step speed - faster as intelligence grows
+  _getStepSpeed() {
+    // Base interval decreases with intelligence
+    const base = 500 - this.intelligence * 2.5 // 500ms at 0, 250ms at 100
+    return Math.max(200, base)
   }
 
   update(dt, stairs, playerFloor) {
+    // Handle death + respawn
     if (!this.alive) {
-      // Auto-respawn after 2 seconds
-      if (!this._deathTime) this._deathTime = performance.now()
-      if (performance.now() - this._deathTime > 2000) {
-        this._deathTime = null
-        this.respawn(playerFloor)
+      if (this.deathTime === 0) {
+        this.deathTime = performance.now()
+        this.showDeath = true
+        this.deathMessage = `CPU #${this.generation} DOWN! (IQ: ${this.intelligence})`
+      }
+      // Respawn after 1.5 seconds
+      if (performance.now() - this.deathTime > 1500) {
+        this.deathTime = 0
+        this._respawn(playerFloor)
       }
       return
     }
 
     const now = performance.now()
-    const interval = this._getStepInterval()
+    const interval = this._getStepSpeed()
 
     if (now - this.lastStepTime < interval) return
     this.lastStepTime = now
@@ -74,25 +101,19 @@ export class AIPlayer {
     const nextStair = stairs[this.currentStair + 1]
     if (!nextStair) return
 
-    // Check if AI should die at this floor
-    if (this.currentStair >= this.deathFloor) {
-      // Small chance to die each step past death floor
-      if (Math.random() < 0.3) {
-        this.alive = false
-        this.charState = 'falling'
-        return
-      }
-    }
+    this.stairsSinceLastMistake++
 
-    // Occasionally hesitate (slow down) - more often at low floors
-    const hesitateChance = Math.max(0.02, 0.15 - this.currentStair * 0.001)
-    if (Math.random() < hesitateChance) {
-      // Just skip this step - wastes time
-      this.lastStepTime = now + 200
+    // Check for mistake
+    const mistakeInterval = this._getMistakeInterval()
+    if (this.stairsSinceLastMistake >= mistakeInterval) {
+      // Time to make a mistake - AI dies
+      this.stairsSinceLastMistake = 0
+      this.alive = false
+      this.charState = 'falling'
       return
     }
 
-    // Correct step - AI always goes in the right direction (it's not stupid, just slow)
+    // Correct step
     this.facingRight = nextStair.direction === 'right'
     this.currentStair++
     this.score = this.currentStair

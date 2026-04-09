@@ -409,14 +409,17 @@ export class Game {
     // Draw crowd (screen space, on top)
     this.crowd.draw(ctx, w, h)
 
-    // AI death notification
-    if (this.ai && !this.ai.alive) {
-      ctx.fillStyle = 'rgba(0,0,0,0.6)'
-      ctx.fillRect(w * 0.15, h * 0.12, w * 0.7, 36)
+    // AI death/respawn notification
+    if (this.ai && this.ai.showDeath) {
+      ctx.fillStyle = 'rgba(0,0,0,0.7)'
+      ctx.fillRect(w * 0.05, h * 0.1, w * 0.9, 50)
       ctx.fillStyle = '#ff6644'
-      ctx.font = 'bold 12px monospace'
+      ctx.font = 'bold 11px monospace'
       ctx.textAlign = 'center'
-      ctx.fillText(`CPU DEFEATED at ${this.ai.score} stairs!`, w / 2, h * 0.12 + 23)
+      ctx.fillText(this.ai.deathMessage, w / 2, h * 0.1 + 20)
+      ctx.fillStyle = '#88ff88'
+      ctx.font = '9px monospace'
+      ctx.fillText('New challenger incoming...', w / 2, h * 0.1 + 38)
     }
 
     // Treasure notification
@@ -548,22 +551,23 @@ export class Game {
     }
 
     // Draw with slight transparency so player stands out
-    ctx.globalAlpha = 0.75
+    ctx.globalAlpha = 0.85
     drawCharSprite(
       ctx, sprite,
       aiX + STAIR_WIDTH / 2 - 8 * CHAR_PIXEL_SIZE,
       aiY + yOffset,
       CHAR_PIXEL_SIZE,
       !this.ai.facingRight,
-      this.aiCharData
+      this.ai.character || this.aiCharData
     )
     ctx.globalAlpha = 1
 
-    // "CPU" label above AI
+    // CPU label with generation and IQ
     ctx.fillStyle = '#ff8844'
     ctx.font = 'bold 8px monospace'
     ctx.textAlign = 'center'
-    ctx.fillText('CPU', aiX + STAIR_WIDTH / 2, aiY - 5)
+    const label = `CPU #${this.ai.generation} (IQ:${this.ai.intelligence})`
+    ctx.fillText(label, aiX + STAIR_WIDTH / 2, aiY - 5)
   }
 
   _drawTreasureChest(ctx, x, y) {

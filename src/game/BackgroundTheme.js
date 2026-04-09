@@ -1,27 +1,34 @@
 // Background themes, landmarks, stair themes, flying characters
 
 const THEMES = [
-  { floor: 0, sky: ['#1a1a3e', '#2a2a5e', '#3a3a7e'] },
-  { floor: 100, sky: ['#1a0a2e', '#3a1a4e', '#5a2a6e'] },
-  { floor: 200, sky: ['#0a1a2e', '#1a3a5e', '#2a5a7e'] },
-  { floor: 300, sky: ['#2e1a0a', '#5e3a1a', '#8e5a2a'] },
-  { floor: 400, sky: ['#0a2e1a', '#1a5e3a', '#2a7e5a'] },
-  { floor: 500, sky: ['#2e0a1a', '#5e1a3a', '#7e2a4a'] },
-  { floor: 600, sky: ['#1a1a1a', '#2a2a3a', '#3a3a5a'] },
-  { floor: 700, sky: ['#0a0a3e', '#1a1a6e', '#3a3aae'] },
-  { floor: 800, sky: ['#3e1a1a', '#6e2a1a', '#ae4a1a'] },
-  { floor: 900, sky: ['#1a2e3e', '#2a4e6e', '#4a7eae'] },
-  { floor: 1000, sky: ['#0a0a0a', '#1a1a2a', '#2a2a4a'] },
-  { floor: 1100, sky: ['#2e2e0a', '#4e4e1a', '#7e7e2a'] },
-  { floor: 1200, sky: ['#0a2e2e', '#1a4e4e', '#2a6e6e'] },
-  { floor: 1300, sky: ['#2e0a2e', '#4e1a4e', '#7e2a7e'] },
-  { floor: 1400, sky: ['#1a0a0a', '#3e1a0a', '#6e3a1a'] },
-  { floor: 1500, sky: ['#0a0a1a', '#0a0a3a', '#1a1a6a'] },
-  { floor: 1600, sky: ['#2e1a2e', '#4e3a4e', '#7e5a7e'] },
-  { floor: 1700, sky: ['#1a2e0a', '#3a5e1a', '#5a8e2a'] },
-  { floor: 1800, sky: ['#3e2e1a', '#6e4e2a', '#ae7e3a'] },
-  { floor: 1900, sky: ['#0a1a3e', '#1a3a6e', '#2a5aae'] },
-  { floor: 2000, sky: ['#000000', '#0a0a1a', '#1a1a3a'] },
+  // Bright daytime cycle
+  { floor: 0, sky: ['#55bbff', '#88ddff', '#aaeeff'] },      // Morning blue
+  { floor: 100, sky: ['#44aaff', '#77ccff', '#99ddff'] },     // Clear day
+  { floor: 200, sky: ['#3399ee', '#66bbee', '#88ccee'] },     // Afternoon
+  { floor: 300, sky: ['#ff8844', '#ffaa66', '#ffcc88'] },     // Sunset orange
+  { floor: 400, sky: ['#cc4466', '#ee6688', '#ff88aa'] },     // Sunset pink
+  { floor: 500, sky: ['#2244aa', '#3355bb', '#4466cc'] },     // Evening
+  { floor: 600, sky: ['#1a1a4e', '#2a2a6e', '#3a3a8e'] },    // Night
+  { floor: 700, sky: ['#ffddaa', '#ffeebb', '#ffffdd'] },     // Bright dawn
+  { floor: 800, sky: ['#55ccff', '#77ddff', '#aaeeff'] },     // Noon bright
+  { floor: 900, sky: ['#ee7744', '#ff9966', '#ffbb88'] },     // Golden sunset
+  { floor: 1000, sky: ['#6644aa', '#8855cc', '#aa77ee'] },    // Twilight purple
+  { floor: 1100, sky: ['#1a2244', '#2a3366', '#3a4488'] },    // Deep evening
+  { floor: 1200, sky: ['#88ccaa', '#aaddbb', '#cceecc'] },    // Mint morning
+  { floor: 1300, sky: ['#ff6677', '#ff8899', '#ffaabb'] },    // Rose dawn
+  { floor: 1400, sky: ['#55aacc', '#77ccdd', '#99ddee'] },    // Clear blue
+  { floor: 1500, sky: ['#dd8844', '#eebb66', '#ffee88'] },    // Amber
+  { floor: 1600, sky: ['#3355cc', '#5577dd', '#7799ee'] },    // Blue hour
+  { floor: 1700, sky: ['#44bb88', '#66ddaa', '#88eecc'] },    // Aurora
+  { floor: 1800, sky: ['#cc6655', '#ee8877', '#ffaa99'] },    // Coral
+  { floor: 1900, sky: ['#4488bb', '#66aadd', '#88ccee'] },    // Ocean blue
+  { floor: 2000, sky: ['#2233aa', '#3344cc', '#4455dd'] },    // Deep blue
+  // Transition to space
+  { floor: 2500, sky: ['#111144', '#1a1a66', '#222288'] },    // Upper atmosphere
+  { floor: 3000, sky: ['#050510', '#0a0a1a', '#101030'] },    // Space
+  { floor: 3500, sky: ['#000005', '#050510', '#0a0a20'] },    // Deep space
+  { floor: 4000, sky: ['#080008', '#100010', '#1a001a'] },    // Nebula
+  { floor: 4500, sky: ['#000000', '#050508', '#0a0a15'] },    // Void
 ]
 
 // Country landmarks drawn as pixel art silhouettes
@@ -134,6 +141,15 @@ const BG_CHARACTERS = [
   { type: 'phoenix', minFloor: 1500 },
   { type: 'satellite', minFloor: 800 },
   { type: 'comet', minFloor: 1200 },
+  // Space era (3000+)
+  { type: 'deathstar', minFloor: 3000 },
+  { type: 'xwing', minFloor: 3000 },
+  { type: 'tiefighter', minFloor: 3200 },
+  { type: 'meteor', minFloor: 3000 },
+  { type: 'spaceship', minFloor: 3500 },
+  { type: 'stormtrooper', minFloor: 3000 },
+  { type: 'yoda', minFloor: 4000 },
+  { type: 'lightsaber', minFloor: 3500 },
 ]
 
 export class BackgroundTheme {
@@ -462,6 +478,144 @@ export class BackgroundTheme {
       case 'comet': {
         ctx.globalAlpha = 0.4; ctx.fillStyle = '#aaddff'; ctx.fillRect(-30, -2, 28, 4)
         ctx.globalAlpha = 0.7; ctx.fillStyle = '#ffffff'; ctx.fillRect(-3, -3, 6, 6)
+        break
+      }
+      // === SPACE ERA (3000+) ===
+      case 'deathstar': {
+        // Death Star sphere
+        ctx.fillStyle = '#667777'
+        ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill()
+        ctx.fillStyle = '#556666'
+        ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI * 2); ctx.fill()
+        // Dish
+        ctx.fillStyle = '#445555'
+        ctx.beginPath(); ctx.arc(-5, -5, 6, 0, Math.PI * 2); ctx.fill()
+        // Equator line
+        ctx.fillStyle = '#778888'
+        ctx.fillRect(-18, -1, 36, 2)
+        // Laser
+        if (f % 60 < 10) {
+          ctx.fillStyle = '#44ff44'
+          ctx.fillRect(-5, -5, 50, 1)
+        }
+        break
+      }
+      case 'xwing': {
+        // X-Wing body
+        ctx.fillStyle = '#cccccc'
+        ctx.fillRect(-8, -2, 16, 4)
+        // Wings
+        ctx.fillStyle = '#aaaaaa'
+        ctx.fillRect(-10, -8, 3, 16)
+        ctx.fillRect(7, -8, 3, 16)
+        // Cockpit
+        ctx.fillStyle = '#4488ff'
+        ctx.fillRect(4, -1, 4, 2)
+        // Engines
+        ctx.fillStyle = '#ff4444'
+        ctx.fillRect(-12, -1, 3, 2)
+        break
+      }
+      case 'tiefighter': {
+        // TIE Fighter
+        ctx.fillStyle = '#333344'
+        ctx.fillRect(-3, -3, 6, 6)
+        // Window
+        ctx.fillStyle = '#4488ff'
+        ctx.fillRect(-1, -1, 2, 2)
+        // Wings
+        ctx.fillStyle = '#444455'
+        ctx.fillRect(-12, -10, 3, 20)
+        ctx.fillRect(9, -10, 3, 20)
+        // Struts
+        ctx.fillRect(-9, -1, 6, 2)
+        ctx.fillRect(3, -1, 6, 2)
+        break
+      }
+      case 'meteor': {
+        // Meteor with trail
+        ctx.fillStyle = '#886644'
+        ctx.fillRect(-5, -5, 10, 10)
+        ctx.fillStyle = '#aa8866'
+        ctx.fillRect(-3, -3, 6, 6)
+        // Fire trail
+        ctx.fillStyle = '#ff6600'
+        ctx.globalAlpha = 0.6
+        ctx.fillRect(-15, -3, 10, 6)
+        ctx.fillStyle = '#ffaa00'
+        ctx.globalAlpha = 0.3
+        ctx.fillRect(-25, -2, 12, 4)
+        ctx.globalAlpha = 0.7
+        break
+      }
+      case 'spaceship': {
+        // Spaceship
+        ctx.fillStyle = '#ddddee'
+        ctx.fillRect(-12, -4, 24, 8)
+        // Nose
+        ctx.fillStyle = '#aabbcc'
+        ctx.fillRect(12, -2, 6, 4)
+        // Window
+        ctx.fillStyle = '#44ddff'
+        ctx.fillRect(8, -2, 4, 4)
+        // Engine glow
+        ctx.fillStyle = '#44aaff'
+        ctx.fillRect(-16, -2, 4, 4)
+        break
+      }
+      case 'stormtrooper': {
+        // Helmet
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(-5, -10, 10, 10)
+        // Eyes
+        ctx.fillStyle = '#111111'
+        ctx.fillRect(-3, -7, 2, 3)
+        ctx.fillRect(1, -7, 2, 3)
+        // Body
+        ctx.fillStyle = '#eeeeee'
+        ctx.fillRect(-6, 0, 12, 10)
+        ctx.fillStyle = '#111111'
+        ctx.fillRect(-4, 2, 8, 2)
+        // Jetpack
+        ctx.fillStyle = '#ff4400'
+        ctx.fillRect(-3, 10, 2, 4 + Math.sin(f * 0.2) * 2)
+        ctx.fillRect(1, 10, 2, 4 + Math.sin(f * 0.2 + 1) * 2)
+        break
+      }
+      case 'yoda': {
+        // Head (green)
+        ctx.fillStyle = '#66aa44'
+        ctx.fillRect(-5, -8, 10, 8)
+        // Ears
+        ctx.fillRect(-12, -7, 8, 3)
+        ctx.fillRect(4, -7, 8, 3)
+        // Eyes
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(-3, -6, 2, 2)
+        ctx.fillRect(1, -6, 2, 2)
+        // Body robe
+        ctx.fillStyle = '#886644'
+        ctx.fillRect(-6, 0, 12, 8)
+        // Lightsaber glow
+        ctx.fillStyle = '#44ff44'
+        ctx.fillRect(6, -8, 2, 14)
+        ctx.globalAlpha = 0.3
+        ctx.fillRect(5, -9, 4, 16)
+        ctx.globalAlpha = 0.7
+        break
+      }
+      case 'lightsaber': {
+        // Handle
+        ctx.fillStyle = '#888899'
+        ctx.fillRect(-2, 4, 4, 10)
+        // Blade (random color)
+        const colors = ['#ff4444', '#4444ff', '#44ff44', '#aa44ff']
+        ctx.fillStyle = colors[Math.floor(f * 0.01) % colors.length]
+        ctx.fillRect(-1, -16, 2, 20)
+        // Glow
+        ctx.globalAlpha = 0.2
+        ctx.fillRect(-3, -16, 6, 20)
+        ctx.globalAlpha = 0.7
         break
       }
     }
