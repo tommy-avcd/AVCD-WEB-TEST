@@ -62,18 +62,17 @@ export class AIPlayer {
   // intelligence 75: 1 mistake per 500 stairs
   // intelligence 100: 1 mistake per 1000 stairs
   _getMistakeInterval() {
-    if (this.intelligence >= 100) return 1000
-    if (this.intelligence >= 75) return 500
-    if (this.intelligence >= 50) return 200
-    if (this.intelligence >= 25) return 80
-    return 20
+    if (this.intelligence >= 100) return 3000
+    if (this.intelligence >= 75) return 1500
+    if (this.intelligence >= 50) return 600
+    if (this.intelligence >= 25) return 240
+    return 60
   }
 
-  // AI step speed - faster as intelligence grows
+  // AI step speed - 10x faster
   _getStepSpeed() {
-    // Base interval decreases with intelligence
-    const base = 500 - this.intelligence * 2.5 // 500ms at 0, 250ms at 100
-    return Math.max(200, base)
+    const base = 50 - this.intelligence * 0.25 // 50ms at 0, 25ms at 100
+    return Math.max(20, base)
   }
 
   update(dt, stairs, playerFloor) {
