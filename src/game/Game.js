@@ -222,7 +222,7 @@ export class Game {
 
     // Running animation - duration scales with speed
     this.charState = 'running'
-    this.runAnimTimer = 200
+    this.runAnimTimer = 50
 
     // Generate more stairs
     if (this.currentStair > this.stairs.length - VISIBLE_STAIRS_AHEAD) {
