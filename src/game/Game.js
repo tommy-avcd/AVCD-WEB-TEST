@@ -308,7 +308,7 @@ export class Game {
       const stair = this.stairs[this.currentStair]
       this.targetCameraY = stair.y - this.canvas.height * 0.55
     }
-    this.cameraY += (this.targetCameraY - this.cameraY) * 0.12
+    this.cameraY += (this.targetCameraY - this.cameraY) * 0.9
 
     // Particles
     this.particles.update()
@@ -334,12 +334,11 @@ export class Game {
     this.weather.update(this.currentStair, w, h, dt)
 
     // Animation frame - speed affects animation rate
-    const animSpeed = Math.max(5, Math.floor(20 / this.speedMultiplier))
+    const animSpeed = Math.max(2, Math.floor(3 / this.speedMultiplier))
     if (this.charState === 'running') {
       this.animFrame = Math.floor(this.globalFrame / animSpeed) % 4
     } else {
-      // Idle: slower breathing cycle (4 frames)
-      this.animFrame = Math.floor(this.globalFrame / 25) % 4
+      this.animFrame = Math.floor(this.globalFrame / 10) % 4
     }
 
     this._render()
