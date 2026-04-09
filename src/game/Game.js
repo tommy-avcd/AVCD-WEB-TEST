@@ -52,6 +52,7 @@ export class Game {
     this.stairs = []
     this.currentStair = 0
     this.score = 0
+    this.scoreOffset = 0 // display offset from elevator
     this.coins = 0
     this.facingRight = true
     this.charState = 'idle'
@@ -137,18 +138,15 @@ export class Game {
     this.running = true
     this.reset()
 
-    // Skip to start floor (elevator)
+    // Elevator: offset score display, but stairs start from 0 internally
     if (this.startFloor > 0) {
-      // Generate enough stairs
-      this._generateStairs(this.startFloor + VISIBLE_STAIRS_AHEAD + VISIBLE_STAIRS_BEHIND)
-      this.currentStair = this.startFloor
-      this.score = this.startFloor
-      this._updateCharPosition()
-      // AI also starts at same floor
-      this.ai.currentStair = this.startFloor
-      this.ai.score = this.startFloor
-      this.ai._calculateDeathFloor(this.startFloor)
+      this.scoreOffset = this.startFloor
+      this.score = this.scoreOffset
     }
+
+    // AI starts from floor 1 (internal stair 0) and runs up
+    this.ai.currentStair = 0
+    this.ai.score = 0
 
     this.lastTime = performance.now()
     soundManager.init()
@@ -196,7 +194,7 @@ export class Game {
     }
 
     this.currentStair++
-    this.score = this.currentStair
+    this.score = this.scoreOffset + this.currentStair
     this._updateCharPosition()
     this.speedMultiplier = this._getSpeedMultiplier()
 
