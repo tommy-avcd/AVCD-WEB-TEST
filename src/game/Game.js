@@ -4,7 +4,6 @@ import { soundManager } from './SoundManager.js'
 import { CrowdSystem } from './CrowdSystem.js'
 import { BackgroundTheme } from './BackgroundTheme.js'
 import { WeatherSystem } from './WeatherSystem.js'
-import { AIPlayer } from './AIPlayer.js'
 
 const STAIR_WIDTH = 64
 const STAIR_HEIGHT = 16
@@ -33,9 +32,6 @@ export class Game {
     this.crowd = new CrowdSystem()
     this.bgTheme = new BackgroundTheme()
     this.weather = new WeatherSystem()
-    this.ai = new AIPlayer()
-    if (aiChar) this.ai.characterId = aiChar.id
-
     this.reset()
     this.animFrame = 0
     this.globalFrame = 0
@@ -82,9 +78,6 @@ export class Game {
     this.targetCameraY = 0
     this.particles.clear()
     if (this.bgFireworks) this.bgFireworks.clear()
-
-    // Reset AI
-    this.ai.reset()
   }
 
 
@@ -143,10 +136,6 @@ export class Game {
       this.scoreOffset = this.startFloor
       this.score = this.scoreOffset
     }
-
-    // AI starts from floor 1 (internal stair 0) and runs up
-    this.ai.currentStair = 0
-    this.ai.score = 0
 
     this.lastTime = performance.now()
     soundManager.init()
@@ -288,8 +277,6 @@ export class Game {
         gameState: this.gameState,
         highScore: this.highScore,
         highCoins: this.highCoins,
-        aiScore: this.ai.score,
-        aiAlive: this.ai.alive,
       })
     }
   }
@@ -326,16 +313,6 @@ export class Game {
     // Particles
     this.particles.update()
     this.bgFireworks.update()
-
-    // AI player update
-    if (this.gameState === 'playing') {
-      this.ai.update(dt, this.stairs, this.currentStair)
-      this.ai.updateAnimation(dt)
-      // If AI dies and player is still alive, player wins
-      if (!this.ai.alive && this.gameState === 'playing') {
-        // AI lost - game continues, player can keep going
-      }
-    }
 
     // Crowd system
     this.crowd.update(this.currentStair, dt)
@@ -407,9 +384,6 @@ export class Game {
     // Draw stairs with themed colors
     this._drawStairs(ctx, w, h)
 
-    // Draw AI character
-    this._drawAICharacter(ctx)
-
     // Draw player character
     this._drawCharacter(ctx)
 
@@ -420,19 +394,6 @@ export class Game {
 
     // Draw crowd (screen space, on top)
     this.crowd.draw(ctx, w, h)
-
-    // AI death/respawn notification
-    if (this.ai && this.ai.showDeath) {
-      ctx.fillStyle = 'rgba(0,0,0,0.7)'
-      ctx.fillRect(w * 0.05, h * 0.1, w * 0.9, 50)
-      ctx.fillStyle = '#ff6644'
-      ctx.font = 'bold 11px monospace'
-      ctx.textAlign = 'center'
-      ctx.fillText(this.ai.deathMessage, w / 2, h * 0.1 + 20)
-      ctx.fillStyle = '#88ff88'
-      ctx.font = '9px monospace'
-      ctx.fillText('New challenger incoming...', w / 2, h * 0.1 + 38)
-    }
 
     // Treasure notification
     this.bgTheme.drawTreasureNotification(ctx, w, h)
@@ -534,52 +495,6 @@ export class Game {
       this.stairs[this.currentStair]?.y - 2 || 0,
       24, 3
     )
-  }
-
-  _drawAICharacter(ctx) {
-    if (!this.ai || this.ai.currentStair >= this.stairs.length) return
-
-    const stair = this.stairs[this.ai.currentStair]
-    if (!stair) return
-
-    const aiX = stair.x
-    const aiY = stair.y - 20 * CHAR_PIXEL_SIZE
-
-    let sprite
-    if (this.ai.charState === 'falling') {
-      sprite = SPRITES.charFall
-    } else if (this.ai.charState === 'running') {
-      sprite = SPRITES.charRun[this.animFrame % SPRITES.charRun.length]
-    } else {
-      sprite = SPRITES.charIdle[this.animFrame % SPRITES.charIdle.length]
-    }
-
-    let yOffset = 0
-    if (this.ai.charState === 'idle' && this.ai.alive) {
-      yOffset = Math.sin(this.globalFrame * 0.08 + 1) * 2
-    }
-    if (!this.ai.alive) {
-      yOffset = 50
-    }
-
-    // Draw with slight transparency so player stands out
-    ctx.globalAlpha = 0.85
-    drawCharSprite(
-      ctx, sprite,
-      aiX + STAIR_WIDTH / 2 - 8 * CHAR_PIXEL_SIZE,
-      aiY + yOffset,
-      CHAR_PIXEL_SIZE,
-      !this.ai.facingRight,
-      this.ai.character || this.aiCharData
-    )
-    ctx.globalAlpha = 1
-
-    // CPU label with generation and IQ
-    ctx.fillStyle = '#ff8844'
-    ctx.font = 'bold 8px monospace'
-    ctx.textAlign = 'center'
-    const label = `CPU #${this.ai.generation} (IQ:${this.ai.intelligence})`
-    ctx.fillText(label, aiX + STAIR_WIDTH / 2, aiY - 5)
   }
 
   _drawTreasureChest(ctx, x, y) {

@@ -2,22 +2,19 @@ import React, { useState, useCallback, useRef } from 'react'
 import GameScreen from './components/GameScreen.jsx'
 import StartScreen from './components/StartScreen.jsx'
 import CharSelectScreen from './components/CharSelectScreen.jsx'
-import MatchScreen from './components/MatchScreen.jsx'
 import ElevatorScreen from './components/ElevatorScreen.jsx'
-import ResultScreen from './components/ResultScreen.jsx'
-import { getRandomCharacter } from './game/Characters.js'
+import GameOverScreen from './components/GameOverScreen.jsx'
 import './styles.css'
 
 export default function App() {
   const [screen, setScreen] = useState('start')
   const [gameData, setGameData] = useState({
     score: 0, coins: 0, combo: 0,
-    aiScore: 0, gameState: 'playing',
+    gameState: 'playing',
     highScore: 0, highCoins: 0,
   })
   const [gameKey, setGameKey] = useState(0)
   const [playerChar, setPlayerChar] = useState(null)
-  const [aiChar, setAiChar] = useState(null)
   const [startFloor, setStartFloor] = useState(0)
   const gameOverTimerRef = useRef(null)
 
@@ -27,16 +24,11 @@ export default function App() {
 
   const handleCharSelect = useCallback((char) => {
     setPlayerChar(char)
-    setAiChar(getRandomCharacter())
     setScreen('elevator')
   }, [])
 
   const handleElevatorComplete = useCallback((floor) => {
     setStartFloor(floor)
-    setScreen('match')
-  }, [])
-
-  const handleMatchReady = useCallback(() => {
     if (gameOverTimerRef.current) {
       clearTimeout(gameOverTimerRef.current)
       gameOverTimerRef.current = null
@@ -49,8 +41,8 @@ export default function App() {
     setGameData(data)
     if (data.gameState === 'gameover' && !gameOverTimerRef.current) {
       gameOverTimerRef.current = setTimeout(() => {
-        setScreen('result')
-      }, 1000)
+        setScreen('gameover')
+      }, 800)
     }
   }, [])
 
@@ -59,8 +51,8 @@ export default function App() {
       clearTimeout(gameOverTimerRef.current)
       gameOverTimerRef.current = null
     }
-    setAiChar(getRandomCharacter())
-    setScreen('match')
+    setScreen('playing')
+    setGameKey(k => k + 1)
   }, [])
 
   const handleMenu = useCallback(() => {
@@ -82,30 +74,22 @@ export default function App() {
       {screen === 'elevator' && (
         <ElevatorScreen onComplete={handleElevatorComplete} />
       )}
-      {screen === 'match' && playerChar && aiChar && (
-        <MatchScreen
-          playerChar={playerChar}
-          aiChar={aiChar}
-          onReady={handleMatchReady}
-        />
-      )}
-      {(screen === 'playing' || screen === 'result') && (
+      {(screen === 'playing' || screen === 'gameover') && (
         <GameScreen
           key={gameKey}
           onUpdate={handleUpdate}
           autoStart={true}
           playerChar={playerChar}
-          aiChar={aiChar}
           startFloor={startFloor}
         />
       )}
-      {screen === 'result' && (
-        <ResultScreen
-          won={gameData.score > gameData.aiScore}
-          playerScore={gameData.score}
-          aiScore={gameData.aiScore}
-          playerChar={playerChar}
-          aiChar={aiChar}
+      {screen === 'gameover' && (
+        <GameOverScreen
+          score={gameData.score}
+          coins={gameData.coins}
+          highScore={gameData.highScore}
+          highCoins={gameData.highCoins}
+          combo={gameData.combo}
           onRestart={handleRestart}
           onMenu={handleMenu}
         />
